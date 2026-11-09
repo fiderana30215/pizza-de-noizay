@@ -7,7 +7,9 @@ export function SiteFooter() {
     <footer className="border-t border-border/70 bg-card/60 px-4 py-8 sm:px-6">
       <div className="mx-auto flex max-w-6xl flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="font-display text-lg font-bold text-primary">🍕 Pizza Night Noisette</p>
+          <p className="font-slab text-lg font-extrabold tracking-tight text-primary">
+            🍕 Pizza Night Noisette
+          </p>
           <p className="mt-1 max-w-md text-sm text-muted-foreground">
             Une soirée organisée par les parents d'élèves de la {EVENT.school}. Tous les bénéfices
             sont reversés à l'école.

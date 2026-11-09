@@ -38,8 +38,11 @@
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
   --color-background: var(--background);
-  --font-display: "Fredoka", sans-serif;
-  --font-sans: "Nunito", sans-serif;
+  /* Affiche "Delicious PIZZA" : serif éditorial + slab + script + sans géométrique. */
+  --font-display: "Playfair Display", "Georgia", serif;
+  --font-slab: "Roboto Slab", "Rockwell", "Georgia", serif;
+  --font-script: "Pacifico", "Brush Script MT", cursive;
+  --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
@@ -75,74 +78,77 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(0.97 0.025 85);
-  --foreground: oklch(0.25 0.05 30);
-  --card: oklch(0.99 0.015 85);
-  --card-foreground: oklch(0.129 0.042 264.695);
+  --radius: 0.375rem;
+  /* Palette « affiche pizzeria » : crème, charbon et orange brûlé. */
+  --background: oklch(0.954 0.016 82.8);
+  --foreground: oklch(0.252 0.006 214.4);
+  --card: oklch(0.985 0.008 85);
+  --card-foreground: oklch(0.252 0.006 214.4);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.58 0.2 30);
-  --primary-foreground: oklch(0.98 0.02 85);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.45 0.05 40);
-  --accent: oklch(0.55 0.14 145);
-  --accent-foreground: oklch(0.98 0.02 85);
+  --popover-foreground: oklch(0.252 0.006 214.4);
+  --primary: oklch(0.61 0.143 59.1);
+  --primary-foreground: oklch(0.985 0.012 85);
+  --secondary: oklch(0.92 0.02 82);
+  --secondary-foreground: oklch(0.3 0.02 60);
+  --muted: oklch(0.93 0.014 82);
+  --muted-foreground: oklch(0.45 0.02 65);
+  --accent: oklch(0.55 0.132 54.3);
+  --accent-foreground: oklch(0.985 0.012 85);
   --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
+  --destructive-foreground: oklch(0.985 0.012 85);
+  --border: oklch(0.88 0.02 80);
+  --input: oklch(0.88 0.02 80);
+  --ring: oklch(0.61 0.143 59.1);
+  --chart-1: oklch(0.61 0.143 59.1);
+  --chart-2: oklch(0.734 0.088 77.3);
+  --chart-3: oklch(0.55 0.1 145);
+  --chart-4: oklch(0.577 0.19 27);
+  --chart-5: oklch(0.252 0.006 214.4);
+  --sidebar: oklch(0.985 0.008 85);
+  --sidebar-foreground: oklch(0.252 0.006 214.4);
+  --sidebar-primary: oklch(0.61 0.143 59.1);
+  --sidebar-primary-foreground: oklch(0.985 0.012 85);
+  --sidebar-accent: oklch(0.93 0.014 82);
+  --sidebar-accent-foreground: oklch(0.3 0.02 60);
+  --sidebar-border: oklch(0.88 0.02 80);
+  --sidebar-ring: oklch(0.61 0.143 59.1);
 }
 
 .dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+  color-scheme: dark;
+  /* Fond charbon de l'affiche, texte crème, orange brûlé en accent. */
+  --background: oklch(0.252 0.006 214.4);
+  --foreground: oklch(0.954 0.016 82.8);
+  --card: oklch(0.285 0.007 211.1);
+  --card-foreground: oklch(0.954 0.016 82.8);
+  --popover: oklch(0.285 0.007 211.1);
+  --popover-foreground: oklch(0.954 0.016 82.8);
+  --primary: oklch(0.66 0.155 62);
+  --primary-foreground: oklch(0.985 0.012 85);
+  --secondary: oklch(0.31 0.01 210);
+  --secondary-foreground: oklch(0.954 0.016 82.8);
+  --muted: oklch(0.33 0.008 214);
+  --muted-foreground: oklch(0.75 0.015 80);
+  --accent: oklch(0.79 0.14 72);
+  --accent-foreground: oklch(0.22 0.03 55);
+  --destructive: oklch(0.65 0.2 25);
+  --destructive-foreground: oklch(0.985 0.012 85);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.7 0.15 62);
+  --chart-1: oklch(0.66 0.155 62);
+  --chart-2: oklch(0.79 0.14 72);
+  --chart-3: oklch(0.62 0.12 145);
+  --chart-4: oklch(0.63 0.19 27);
+  --chart-5: oklch(0.954 0.016 82.8);
+  --sidebar: oklch(0.285 0.007 211.1);
+  --sidebar-foreground: oklch(0.954 0.016 82.8);
+  --sidebar-primary: oklch(0.66 0.155 62);
+  --sidebar-primary-foreground: oklch(0.985 0.012 85);
+  --sidebar-accent: oklch(0.33 0.008 214);
+  --sidebar-accent-foreground: oklch(0.954 0.016 82.8);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: oklch(0.7 0.15 62);
 }
 
 @layer base {
@@ -151,12 +157,80 @@
   }
 
   body {
+    font-family: var(--font-sans);
     background-color: var(--color-background);
     color: var(--color-foreground);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Hiérarchie de l'affiche : slab pour le titre principal, serif pour les sections. */
+  h1 {
+    font-family: var(--font-slab);
+    font-weight: 800;
+    letter-spacing: -0.015em;
+  }
+
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 700;
   }
 }
 
-@layer base { body { font-family: var(--font-sans); } h1,h2,h3 { font-family: var(--font-display); } }
-.checker { background-image: repeating-conic-gradient(var(--primary) 0 25%, var(--background) 0 50%); background-size: 32px 32px; }
-@keyframes wobble { 0%,100% { transform: rotate(-3deg) } 50% { transform: rotate(3deg) } }
-.wobble { animation: wobble 3s ease-in-out infinite; }
+/* Petit trait de pinceau orange, façon affiche peinte. */
+.brush-underline {
+  position: relative;
+  display: inline-block;
+}
+.brush-underline::after {
+  content: "";
+  position: absolute;
+  left: -0.15em;
+  right: -0.15em;
+  bottom: 0.02em;
+  height: 0.32em;
+  z-index: -1;
+  background: var(--primary);
+  opacity: 0.85;
+  transform: rotate(-1.2deg);
+  border-radius: 0.1em 0.6em 0.2em 0.5em;
+}
+
+/* Grain discret au-dessus des grandes surfaces sombres (papier / ardoise). */
+.grain {
+  position: relative;
+  isolation: isolate;
+}
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Badge circulaire dessiné à la main (pastille « promo » de l'affiche). */
+.badge-dashed {
+  border: 2px dashed currentColor;
+  border-radius: 9999px;
+}
+
+.checker {
+  background-image: repeating-conic-gradient(var(--primary) 0 25%, var(--background) 0 50%);
+  background-size: 32px 32px;
+}
+@keyframes wobble {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+.wobble {
+  animation: wobble 3s ease-in-out infinite;
+}

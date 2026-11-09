@@ -154,36 +154,11 @@ function ReserverPage() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <div className="max-w-2xl">
-        <p className="font-bold uppercase tracking-widest text-accent">Réservation</p>
-        <h1 className="mt-2 text-4xl font-bold text-primary md:text-5xl">
-          Commandez vos pizzas 🍕
-        </h1>
-        <p className="mt-3 text-lg text-muted-foreground">
-          Remplissez le formulaire ci-dessous. Aucun paiement en ligne : vous réglerez sur place le
-          soir de la soirée.
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2 text-sm font-bold">
-          <span className="inline-flex items-center gap-2 rounded-full bg-card px-3 py-1.5 shadow-sm">
-            <CalendarDays className="h-4 w-4 text-accent" />
-            {EVENT.dateLabel}
-          </span>
-          <span className="inline-flex items-center gap-2 rounded-full bg-card px-3 py-1.5 shadow-sm">
-            <Clock className="h-4 w-4 text-accent" />
-            {EVENT.timeLabel}
-          </span>
-          <span className="inline-flex items-center gap-2 rounded-full bg-card px-3 py-1.5 shadow-sm">
-            <MapPin className="h-4 w-4 text-accent" />
-            {EVENT.locationName}
-          </span>
-        </div>
-      </div>
-
+    <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
       <form
         onSubmit={handleSubmit}
         noValidate
-        className="mt-8 grid items-start gap-8 lg:grid-cols-[1fr_360px]"
+        className="grid items-start gap-8 lg:grid-cols-[1fr_360px]"
       >
         <div className="space-y-6">
           <section className="rounded-3xl bg-card p-6 shadow-md sm:p-8">
@@ -412,7 +387,7 @@ function ReserverPage() {
               </span>
             </div>
 
-            <p className="mt-3 flex items-start gap-2 rounded-xl bg-accent/10 p-3 text-xs text-accent-foreground/90">
+            <p className="mt-3 flex items-start gap-2 rounded-xl bg-accent/10 p-3 text-xs text-foreground/90">
               <CreditCard className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
               <span>
                 Aucun paiement en ligne. Vous réglerez sur place, en espèces ou par chèque, au
@@ -443,16 +418,6 @@ function ReserverPage() {
           </div>
         </aside>
       </form>
-
-      <p className="mt-8 text-center text-sm text-muted-foreground">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-1 font-bold text-primary hover:underline"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Retour à l'accueil
-        </Link>
-      </p>
     </main>
   );
 }
