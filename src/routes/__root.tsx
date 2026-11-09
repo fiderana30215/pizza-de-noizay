@@ -12,6 +12,8 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { SiteFooter } from "../components/site-footer";
+import { SiteHeader } from "../components/site-header";
 
 function NotFoundComponent() {
   return (
@@ -75,27 +77,36 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
-    // Replace these placeholders with the app's name and description when first building the app.
-    // Each content route, / included, must still set its own head(). Never add og:image or
-    // twitter:image here: every page without its own would inherit the root's preview image.
+    // Chaque route de contenu définit son propre head(). Ne jamais ajouter og:image ou
+    // twitter:image ici : toutes les pages sans image hériteraient de l'aperçu de la racine.
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Soirée Pizza de l'école" },
-      { name: "description", content: "Soirée pizza solidaire au profit de l'école" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Soirée Pizza de l'école" },
-      { property: "og:description", content: "Soirée pizza solidaire au profit de l'école" },
+      { title: "Pizza Night Noisette · Soirée solidaire" },
+      {
+        name: "description",
+        content:
+          "Soirée pizza solidaire de la Caisse de Noisette : commandez en ligne, payez sur place.",
+      },
+      { name: "author", content: "Caisse de Noisette" },
+      { property: "og:title", content: "Pizza Night Noisette · Soirée solidaire" },
+      {
+        property: "og:description",
+        content:
+          "Soirée pizza solidaire de la Caisse de Noisette : commandez en ligne, payez sur place.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Nunito:wght@400;700&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Nunito:wght@400;700&display=swap",
+      },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
@@ -107,7 +118,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="fr">
       <head>
         <HeadContent />
       </head>
@@ -124,8 +135,14 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <div className="flex min-h-screen flex-col">
+        <SiteHeader />
+        <div className="flex-1">
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+        </div>
+        <SiteFooter />
+      </div>
     </QueryClientProvider>
   );
 }
