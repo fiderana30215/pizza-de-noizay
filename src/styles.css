@@ -38,6 +38,8 @@
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
   --color-background: var(--background);
+  --font-display: "Fredoka", sans-serif;
+  --font-sans: "Nunito", sans-serif;
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
@@ -74,20 +76,20 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
+  --background: oklch(0.97 0.025 85);
+  --foreground: oklch(0.25 0.05 30);
+  --card: oklch(0.99 0.015 85);
   --card-foreground: oklch(0.129 0.042 264.695);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
+  --primary: oklch(0.58 0.2 30);
+  --primary-foreground: oklch(0.98 0.02 85);
   --secondary: oklch(0.968 0.007 247.896);
   --secondary-foreground: oklch(0.208 0.042 265.755);
   --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
+  --muted-foreground: oklch(0.45 0.05 40);
+  --accent: oklch(0.55 0.14 145);
+  --accent-foreground: oklch(0.98 0.02 85);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.984 0.003 247.858);
   --border: oklch(0.929 0.013 255.508);
@@ -153,3 +155,8 @@
     color: var(--color-foreground);
   }
 }
+
+@layer base { body { font-family: var(--font-sans); } h1,h2,h3 { font-family: var(--font-display); } }
+.checker { background-image: repeating-conic-gradient(var(--primary) 0 25%, var(--background) 0 50%); background-size: 32px 32px; }
+@keyframes wobble { 0%,100% { transform: rotate(-3deg) } 50% { transform: rotate(3deg) } }
+.wobble { animation: wobble 3s ease-in-out infinite; }
