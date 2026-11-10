@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 
+import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageBackground } from "@/components/page-background";
@@ -185,7 +187,16 @@ function CaisseDashboard({ code, onLock }: { code: string; onLock: () => void })
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: ReservationStatus }) =>
       updateReservationStatus(code, id, status),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["reservations", backend] }),
+    onSuccess: ({ emailSent }) => {
+      if (emailSent === true) {
+        toast.success("Mail envoyé au client", {
+          style: { background: "#16a34a", color: "#ffffff", border: "none" },
+        });
+      } else if (emailSent === false) {
+        toast.error("L'e-mail n'a pas pu être envoyé au client");
+      }
+      return queryClient.invalidateQueries({ queryKey: ["reservations", backend] });
+    },
   });
 
   const deleteMutation = useMutation({

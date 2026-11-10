@@ -117,11 +117,16 @@ export async function listReservations(code: string): Promise<Reservation[]> {
   return readLocalReservations().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
+export type UpdateStatusResult = {
+  reservation: Reservation;
+  emailSent: boolean | null;
+};
+
 export async function updateReservationStatus(
   code: string,
   id: string,
   status: ReservationStatus,
-): Promise<Reservation> {
+): Promise<UpdateStatusResult> {
   if (getBackendMode() === "supabase") {
     return updateReservationStatusFn({ data: { code, id, status } });
   }
@@ -141,15 +146,16 @@ export async function updateReservationStatus(
 
   // Comme en mode Supabase, on prévient le client au passage à « payé » ou
   // « récupéré ». L'échec d'envoi ne bloque pas la mise à jour.
+  let emailSent: boolean | null = null;
   if (previous.status !== status && (status === "paid" || status === "picked_up")) {
     try {
-      await sendReservationEmailFn({ data: { reservation: updated, kind: status } });
+      emailSent = await sendReservationEmailFn({ data: { reservation: updated, kind: status } });
     } catch {
-      // L'e-mail est informatif : on ignore les erreurs d'envoi.
+      emailSent = false;
     }
   }
 
-  return updated;
+  return { reservation: updated, emailSent };
 }
 
 export async function deleteReservation(code: string, id: string): Promise<void> {

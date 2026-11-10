@@ -192,12 +192,40 @@ export async function sendReservationEmail(
   kind: ReservationEmailKind = "confirmation",
 ): Promise<boolean> {
   const apiKey = readEnv("RESEND_API_KEY");
+  const scriptUrl = readEnv("GOOGLE_SCRIPT_EMAIL_URL");
   const from = readEnv("RESERVATION_EMAIL_FROM") ?? "Pizza Night Noizay <onboarding@resend.dev>";
 
-  if (!apiKey || !reservation.email) return false;
+  if (!reservation.email || (!apiKey && !scriptUrl)) return false;
 
   const { subject, html, text } = buildEmail(reservation, kind);
   const replyTo = readEnv("RESERVATION_EMAIL_REPLY_TO");
+
+  if (scriptUrl) {
+    try {
+      const response = await fetch(scriptUrl, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          secret: readEnv("GOOGLE_SCRIPT_EMAIL_SECRET") ?? "",
+          to: reservation.email,
+          subject,
+          html,
+          text,
+          replyTo: replyTo ?? "",
+        }),
+        redirect: "follow",
+      });
+      const result = (await response.text()).trim();
+      if (!response.ok || result !== "ok") {
+        console.error(`Échec de l'envoi de l'e-mail (${kind}) :`, response.status, result);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error(`Échec de l'envoi de l'e-mail (${kind}) :`, error);
+      return false;
+    }
+  }
 
   const payload: Record<string, unknown> = {
     from,

@@ -62,7 +62,11 @@ describe("réservations (mode démo local)", () => {
   it("met à jour le statut puis supprime la réservation", async () => {
     const { reservation } = await createReservation(BASE_INPUT);
 
-    const updated = await updateReservationStatus("noizay", reservation.id, "paid");
+    const { reservation: updated } = await updateReservationStatus(
+      "noizay",
+      reservation.id,
+      "paid",
+    );
     expect(updated.status).toBe("paid");
     expect((await listReservations("noizay"))[0]?.status).toBe("paid");
 

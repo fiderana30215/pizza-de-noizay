@@ -142,12 +142,13 @@ export const updateReservationStatusFn = createServerFn({ method: "POST" })
 
     // On prévient le client uniquement lors d'un vrai passage à « payé » ou
     // « récupéré », pas si l'admin réenregistre le même statut.
+    let emailSent: boolean | null = null;
     if (previousStatus !== data.status && (data.status === "paid" || data.status === "picked_up")) {
       const { sendReservationEmail } = await import("./email.server");
-      await sendReservationEmail(reservation, data.status);
+      emailSent = await sendReservationEmail(reservation, data.status);
     }
 
-    return reservation;
+    return { reservation, emailSent };
   });
 
 export const deleteReservationFn = createServerFn({ method: "POST" })
