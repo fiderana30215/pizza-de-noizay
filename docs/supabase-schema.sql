@@ -1,4 +1,4 @@
--- Schéma de la table des réservations — Pizza Night Noisette
+-- Schéma de la table des réservations — Pizza Night Noizay
 --
 -- À exécuter dans l'éditeur SQL de Supabase :
 --   Dashboard Supabase → SQL Editor → New query → coller → Run

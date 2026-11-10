@@ -81,18 +81,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Pizza Night Noisette · Soirée solidaire" },
+      { title: "Pizza Night Noizay · Soirée solidaire" },
       {
         name: "description",
         content:
-          "Soirée pizza solidaire de la Caisse de Noisette : commandez en ligne, payez sur place.",
+          "Soirée pizza solidaire de la Caisse de Noizay : commandez en ligne, payez sur place.",
       },
-      { name: "author", content: "Caisse de Noisette" },
-      { property: "og:title", content: "Pizza Night Noisette · Soirée solidaire" },
+      { name: "author", content: "Caisse de Noizay" },
+      { property: "og:title", content: "Pizza Night Noizay · Soirée solidaire" },
       {
         property: "og:description",
         content:
-          "Soirée pizza solidaire de la Caisse de Noisette : commandez en ligne, payez sur place.",
+          "Soirée pizza solidaire de la Caisse de Noizay : commandez en ligne, payez sur place.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

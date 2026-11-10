@@ -56,7 +56,7 @@ export function getSupabaseAdmin(): SupabaseClient | null {
 }
 
 export function requireCaisseCode(code: string | undefined): void {
-  const expected = readEnv("CAISSE_CODE") ?? "noisette";
+  const expected = readEnv("CAISSE_CODE") ?? "noizay";
   if (!code || code.trim() !== expected) {
     throw new Error("Code d'accès invalide.");
   }

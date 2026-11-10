@@ -15,7 +15,7 @@ describe("App routing", () => {
     expect(matches.at(-1)?.routeId).not.toBe(rootRouteId);
   });
 
-  it("matches the reservation and caisse pages", () => {
+  it("matches the reservation and admin pages", () => {
     const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
 
     for (const path of ["/reserver", "/caisse"]) {

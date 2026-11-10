@@ -28,7 +28,7 @@ export type Reservation = {
 export type NewReservationInput = {
   customerName: string;
   phone: string;
-  email?: string;
+  email: string;
   childClass?: string;
   pickupSlot: string;
   notes?: string;
@@ -152,6 +152,12 @@ function validatePhone(phone: string): void {
   }
 }
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+export function isValidEmail(email: string): boolean {
+  return EMAIL_PATTERN.test(email);
+}
+
 /**
  * Valide les données et construit la réservation. Utilisé côté navigateur
  * (mode démo) et côté serveur (avant l'écriture dans Supabase).
@@ -163,6 +169,7 @@ export function buildReservation(input: NewReservationInput): Reservation {
 
   const customerName = (input.customerName ?? "").trim();
   const phone = (input.phone ?? "").trim();
+  const email = (input.email ?? "").trim();
   const pickupSlot = (input.pickupSlot ?? "").trim();
 
   if (customerName.length < 2) {
@@ -170,6 +177,10 @@ export function buildReservation(input: NewReservationInput): Reservation {
   }
 
   validatePhone(phone);
+
+  if (!isValidEmail(email)) {
+    throw new ReservationError("Indiquez une adresse e-mail valide.");
+  }
 
   if (!PICKUP_SLOTS.includes(pickupSlot as PickupSlot)) {
     throw new ReservationError("Choisissez un créneau de retrait.");
@@ -183,7 +194,7 @@ export function buildReservation(input: NewReservationInput): Reservation {
     reference: makeReference(),
     customerName,
     phone,
-    email: clean(input.email),
+    email,
     childClass: clean(input.childClass),
     pickupSlot,
     notes: clean(input.notes),

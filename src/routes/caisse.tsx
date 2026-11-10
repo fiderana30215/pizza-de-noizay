@@ -17,11 +17,13 @@ import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "re
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PageBackground } from "@/components/page-background";
 import { EVENT, formatEuros, formatSlot } from "@/lib/event";
 import {
   deleteReservation,
   downloadReservationsCsv,
   getBackendMode,
+  getLocalCaisseCode,
   itemsSummary,
   listReservations,
   reservationItemCount,
@@ -39,7 +41,7 @@ const CODE_STORAGE_KEY = "noisette-caisse-code";
 export const Route = createFileRoute("/caisse")({
   head: () => ({
     meta: [
-      { title: "Espace caisse · Soirée Pizza Noisette" },
+      { title: "Espace admin · Soirée Pizza Noizay" },
       {
         name: "description",
         content: "Espace réservé aux bénévoles pour suivre les réservations et les encaissements.",
@@ -62,31 +64,37 @@ function CaissePage() {
 
   if (checkingSession) {
     return (
-      <main className="flex min-h-[50vh] items-center justify-center px-6">
-        <RefreshCw className="h-6 w-6 animate-spin text-primary" aria-label="Chargement" />
-      </main>
+      <PageBackground>
+        <main className="flex min-h-[70vh] items-center justify-center px-6">
+          <RefreshCw className="h-6 w-6 animate-spin text-primary" aria-label="Chargement" />
+        </main>
+      </PageBackground>
     );
   }
 
   if (!code) {
     return (
-      <CaisseGate
-        onUnlock={(value) => {
-          window.sessionStorage.setItem(CODE_STORAGE_KEY, value);
-          setCode(value);
-        }}
-      />
+      <PageBackground>
+        <CaisseGate
+          onUnlock={(value) => {
+            window.sessionStorage.setItem(CODE_STORAGE_KEY, value);
+            setCode(value);
+          }}
+        />
+      </PageBackground>
     );
   }
 
   return (
-    <CaisseDashboard
-      code={code}
-      onLock={() => {
-        window.sessionStorage.removeItem(CODE_STORAGE_KEY);
-        setCode(null);
-      }}
-    />
+    <PageBackground>
+      <CaisseDashboard
+        code={code}
+        onLock={() => {
+          window.sessionStorage.removeItem(CODE_STORAGE_KEY);
+          setCode(null);
+        }}
+      />
+    </PageBackground>
   );
 }
 
@@ -106,10 +114,10 @@ function CaisseGate({ onUnlock }: { onUnlock: (code: string) => void }) {
       if (valid) {
         onUnlock(code.trim());
       } else {
-        setError("Code d'accès incorrect.");
+        setError("Mot de passe incorrect.");
       }
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Code d'accès incorrect.");
+      setError(caught instanceof Error ? caught.message : "Mot de passe incorrect.");
     } finally {
       setIsChecking(false);
     }
@@ -121,9 +129,9 @@ function CaisseGate({ onUnlock }: { onUnlock: (code: string) => void }) {
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
           <Lock className="h-7 w-7" />
         </div>
-        <h1 className="mt-4 text-2xl font-bold text-primary">Espace caisse</h1>
+        <h1 className="mt-4 text-2xl font-bold text-primary">Espace admin</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Réservé aux bénévoles de la soirée. Entrez le code d'accès pour suivre les réservations.
+          Réservé aux bénévoles de la soirée. Entrez le mot de passe pour suivre les réservations.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-3">
@@ -133,10 +141,10 @@ function CaisseGate({ onUnlock }: { onUnlock: (code: string) => void }) {
               setCode(event.target.value);
               setError(null);
             }}
-            placeholder="Code d'accès"
+            placeholder="Mot de passe"
             type="password"
             autoComplete="current-password"
-            aria-label="Code d'accès"
+            aria-label="Mot de passe"
             className="h-11 bg-background text-center"
           />
           {error && (
@@ -145,14 +153,15 @@ function CaisseGate({ onUnlock }: { onUnlock: (code: string) => void }) {
             </p>
           )}
           <Button type="submit" className="w-full" size="lg" disabled={isChecking || !code.trim()}>
-            {isChecking ? "Vérification…" : "Ouvrir la caisse"}
+            {isChecking ? "Vérification…" : "Ouvrir l'admin"}
           </Button>
         </form>
 
         {isLocal && (
           <p className="mt-4 rounded-xl bg-muted p-3 text-xs text-muted-foreground">
-            Mode démo local : le code par défaut est <code className="font-bold">noisette</code>.
-            Configurez Supabase pour partager les réservations entre appareils.
+            Mode démo local : le mot de passe est{" "}
+            <code className="font-bold">{getLocalCaisseCode()}</code>. Configurez Supabase pour
+            partager les réservations entre appareils.
           </p>
         )}
       </div>
@@ -232,7 +241,7 @@ function CaisseDashboard({ code, onLock }: { code: string; onLock: () => void })
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="font-bold uppercase tracking-widest text-accent">Espace bénévoles</p>
-          <h1 className="mt-1 text-4xl font-bold text-primary md:text-5xl">Caisse de la soirée</h1>
+          <h1 className="mt-1 text-4xl font-bold text-primary md:text-5xl">Admin de la soirée</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {EVENT.dateLabel} · {EVENT.locationName}
           </p>

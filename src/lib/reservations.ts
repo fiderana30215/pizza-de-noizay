@@ -9,6 +9,7 @@ import {
   createReservationFn,
   deleteReservationFn,
   listReservationsFn,
+  sendReservationEmailFn,
   updateReservationStatusFn,
   verifyCaisseCodeFn,
 } from "./reservations.functions";
@@ -23,15 +24,26 @@ export {
   ReservationError,
   STATUS_LABELS,
   STATUS_ORDER,
+  isValidEmail,
   itemsSummary,
   reservationItemCount,
 } from "./reservation-core";
 
 const LOCAL_STORAGE_KEY = "noisette-pizza-reservations-v1";
 const LOCAL_CAISSE_CODE =
-  (import.meta.env["VITE_CAISSE_CODE"] as string | undefined)?.trim() || "noisette";
+  (import.meta.env["VITE_CAISSE_CODE"] as string | undefined)?.trim() || "noizay";
 
 export type ReservationBackend = "supabase" | "local";
+
+export type CreateReservationResult = {
+  reservation: Reservation;
+  emailSent: boolean;
+};
+
+/** Code d'accès effectif en mode démo local (affiché sur la page admin). */
+export function getLocalCaisseCode(): string {
+  return LOCAL_CAISSE_CODE;
+}
 
 /**
  * Supabase est utilisé dès que VITE_SUPABASE_URL est défini (côté navigateur).
@@ -64,7 +76,9 @@ function writeLocalReservations(reservations: Reservation[]): void {
   window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(reservations));
 }
 
-export async function createReservation(input: NewReservationInput): Promise<Reservation> {
+export async function createReservation(
+  input: NewReservationInput,
+): Promise<CreateReservationResult> {
   if (getBackendMode() === "supabase") {
     return createReservationFn({ data: input });
   }
@@ -73,7 +87,17 @@ export async function createReservation(input: NewReservationInput): Promise<Res
   const reservations = readLocalReservations();
   reservations.unshift(reservation);
   writeLocalReservations(reservations);
-  return reservation;
+
+  // En mode démo, la réservation reste dans le navigateur : on demande au
+  // serveur d'envoyer l'e-mail de confirmation s'il est configuré.
+  let emailSent = false;
+  try {
+    emailSent = await sendReservationEmailFn({ data: { reservation, kind: "confirmation" } });
+  } catch {
+    emailSent = false;
+  }
+
+  return { reservation, emailSent };
 }
 
 export async function verifyCaisseCode(code: string): Promise<boolean> {
@@ -110,9 +134,21 @@ export async function updateReservationStatus(
     throw new Error("Réservation introuvable.");
   }
 
-  const updated: Reservation = { ...reservations[index]!, status, updatedAt: now };
+  const previous = reservations[index]!;
+  const updated: Reservation = { ...previous, status, updatedAt: now };
   reservations[index] = updated;
   writeLocalReservations(reservations);
+
+  // Comme en mode Supabase, on prévient le client au passage à « payé » ou
+  // « récupéré ». L'échec d'envoi ne bloque pas la mise à jour.
+  if (previous.status !== status && (status === "paid" || status === "picked_up")) {
+    try {
+      await sendReservationEmailFn({ data: { reservation: updated, kind: status } });
+    } catch {
+      // L'e-mail est informatif : on ignore les erreurs d'envoi.
+    }
+  }
+
   return updated;
 }
 

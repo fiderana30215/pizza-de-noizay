@@ -8,7 +8,7 @@ export function SiteFooter() {
       <div className="mx-auto flex max-w-6xl flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="font-slab text-lg font-extrabold tracking-tight text-primary">
-            🍕 Pizza Night Noisette
+            🍕 Pizza Night Noizay
           </p>
           <p className="mt-1 max-w-md text-sm text-muted-foreground">
             Une soirée organisée par les parents d'élèves de la {EVENT.school}. Tous les bénéfices
@@ -18,7 +18,7 @@ export function SiteFooter() {
             to="/caisse"
             className="mt-3 inline-block text-xs font-bold text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
           >
-            Espace bénévoles (caisse)
+            Espace bénévoles (admin)
           </Link>
         </div>
 

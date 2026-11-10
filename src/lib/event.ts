@@ -3,14 +3,14 @@
  * Modifiez ce fichier pour mettre à jour la date, le lieu, les prix ou le menu.
  */
 export const EVENT = {
-  school: "Caisse de Noisette",
+  school: "Caisse de Noizay",
   title: "Soirée Pizza solidaire",
-  dateLabel: "Samedi 5 décembre 2026",
-  dateISO: "2026-12-05T18:00:00+01:00",
+  dateLabel: "Jeudi 26 novembre 2026",
+  dateISO: "2026-11-26T18:00:00+01:00",
   timeLabel: "Retraits de 18h à 21h",
-  locationName: "Salle polyvalente de Noisette",
-  locationDetail: "Adresse communiquée par l'école",
-  orderDeadlineLabel: "vendredi 27 novembre 2026",
+  locationName: "Boulangerie les pains de Cisse - Noizay",
+  locationDetail: "Retrait des pizzas sur place",
+  orderDeadlineLabel: "mercredi 25 novembre 2026",
   maxPizzasPerOrder: 20,
 } as const;
 
@@ -25,43 +25,19 @@ export type Pizza = {
 
 export const PIZZAS: readonly Pizza[] = [
   {
-    id: "margherita",
-    name: "Margherita",
-    description: "Tomate, mozzarella, basilic frais",
-    priceCents: 900,
-    emoji: "🍅",
+    id: "chevre-miel",
+    name: "Chèvre-miel",
+    description: "Crème fraîche, mozzarella, fromage de chèvre, miel, noix",
+    priceCents: 1200,
+    emoji: "🍯",
     vegetarian: true,
   },
   {
-    id: "reine",
-    name: "La Reine",
-    description: "Jambon, champignons, mozzarella",
-    priceCents: 1000,
+    id: "regina",
+    name: "Régina",
+    description: "Tomate, fromage, mozzarella, champignons, jambon et olives",
+    priceCents: 1200,
     emoji: "🍄",
-    vegetarian: false,
-  },
-  {
-    id: "quatre-fromages",
-    name: "4 fromages",
-    description: "Mozzarella, chèvre, emmental, gorgonzola",
-    priceCents: 1000,
-    emoji: "🧀",
-    vegetarian: true,
-  },
-  {
-    id: "vegetarienne",
-    name: "Végétarienne",
-    description: "Courgettes, poivrons, oignons, olives",
-    priceCents: 1000,
-    emoji: "🥦",
-    vegetarian: true,
-  },
-  {
-    id: "pepperoni",
-    name: "Pepperoni",
-    description: "Pepperoni, mozzarella, origan",
-    priceCents: 1100,
-    emoji: "🌶️",
     vegetarian: false,
   },
 ] as const;

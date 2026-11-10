@@ -5,6 +5,7 @@ import {
   fromRow,
   toRow,
   type NewReservationInput,
+  type Reservation,
   type ReservationRow,
   type ReservationStatus,
 } from "./reservation-core";
@@ -40,7 +41,43 @@ export const createReservationFn = createServerFn({ method: "POST" })
       throw new Error(`Impossible d'enregistrer la réservation : ${error.message}`);
     }
 
-    return reservation;
+    const { sendReservationEmail } = await import("./email.server");
+    const emailSent = await sendReservationEmail(reservation, "confirmation");
+
+    return { reservation, emailSent };
+  });
+
+const EMAIL_KINDS = ["confirmation", "paid", "picked_up"] as const;
+type EmailKind = (typeof EMAIL_KINDS)[number];
+
+type SendReservationEmailInput = {
+  reservation: Reservation;
+  kind: EmailKind;
+};
+
+/**
+ * Envoi d'un e-mail lié à une réservation pour le mode démo local, où la
+ * réservation n'est pas enregistrée côté serveur. L'envoi est ignoré si Resend
+ * n'est pas configuré.
+ */
+export const sendReservationEmailFn = createServerFn({ method: "POST" })
+  .validator((data: SendReservationEmailInput) => {
+    const reservation = data?.reservation;
+    if (
+      !reservation ||
+      typeof reservation.email !== "string" ||
+      !reservation.email.includes("@") ||
+      !Array.isArray(reservation.items) ||
+      typeof reservation.reference !== "string" ||
+      !EMAIL_KINDS.includes(data.kind)
+    ) {
+      throw new Error("Données d'e-mail invalides.");
+    }
+    return data;
+  })
+  .handler(async ({ data }) => {
+    const { sendReservationEmail } = await import("./email.server");
+    return sendReservationEmail(data.reservation, data.kind);
   });
 
 export const verifyCaisseCodeFn = createServerFn({ method: "POST" })
@@ -78,6 +115,17 @@ export const updateReservationStatusFn = createServerFn({ method: "POST" })
     }
 
     const supabase = await getAdmin();
+
+    const { data: current, error: readError } = await supabase
+      .from("reservations")
+      .select("status")
+      .eq("id", data.id)
+      .single();
+
+    if (readError) {
+      throw new Error(`Réservation introuvable : ${readError.message}`);
+    }
+
     const { data: row, error } = await supabase
       .from("reservations")
       .update({ status: data.status, updated_at: new Date().toISOString() })
@@ -89,7 +137,17 @@ export const updateReservationStatusFn = createServerFn({ method: "POST" })
       throw new Error(`Impossible de mettre à jour la réservation : ${error.message}`);
     }
 
-    return fromRow(row as ReservationRow);
+    const reservation = fromRow(row as ReservationRow);
+    const previousStatus = (current as { status: ReservationStatus }).status;
+
+    // On prévient le client uniquement lors d'un vrai passage à « payé » ou
+    // « récupéré », pas si l'admin réenregistre le même statut.
+    if (previousStatus !== data.status && (data.status === "paid" || data.status === "picked_up")) {
+      const { sendReservationEmail } = await import("./email.server");
+      await sendReservationEmail(reservation, data.status);
+    }
+
+    return reservation;
   });
 
 export const deleteReservationFn = createServerFn({ method: "POST" })

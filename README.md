@@ -1,14 +1,15 @@
-# Caisse Noisette Pizza Night
+# Pizza Night Noizay
 
-Je suis Pascal, je suis passant de vente pour une soirée organisée par l'école de la Caisse de Noisette. On fait toutes les consignes, on a expliqué un peu, c'était une soirée pizza où l'argent est redistribué après pour l'école. Il faut que je lui ai fait une page qui soit jolie, que ça fasse un peu triolat, s'il vous plaît, et qu'il puisse y avoir un lien de réservation pour les commandes et pas de paiement. En fait, là, c'est un truc gratuit qu'on fait et l'idée, c'est que la commune, normalement, devrait vouloir représenter Internet et qu'ils voient qu'on puisse, qu'on peut le faire et qu'on est sympa avec eux et que du coup, après, ils nous demandent de refaire leur site web pour normalement, ça doit être fait. Merci beaucoup et vous hésitez pas si vous avez des questions. Et pareil, là, je pense que Nellie ne nous donnera pas le gars du base tout de suite, donc ça, ce qu'on ne peut pas faire aujourd'hui, c'est très top. Merci.
+Je suis Pascal, je suis passant de vente pour une soirée organisée par l'école de la Caisse de Noizay. On fait toutes les consignes, on a expliqué un peu, c'était une soirée pizza où l'argent est redistribué après pour l'école. Il faut que je lui ai fait une page qui soit jolie, que ça fasse un peu triolat, s'il vous plaît, et qu'il puisse y avoir un lien de réservation pour les commandes et pas de paiement. En fait, là, c'est un truc gratuit qu'on fait et l'idée, c'est que la commune, normalement, devrait vouloir représenter Internet et qu'ils voient qu'on puisse, qu'on peut le faire et qu'on est sympa avec eux et que du coup, après, ils nous demandent de refaire leur site web pour normalement, ça doit être fait. Merci beaucoup et vous hésitez pas si vous avez des questions. Et pareil, là, je pense que Nellie ne nous donnera pas le gars du base tout de suite, donc ça, ce qu'on ne peut pas faire aujourd'hui, c'est très top. Merci.
 
 ## Fonctionnalités
 
 - **Accueil** (`/`) : présentation de la soirée, menu des pizzas, infos pratiques et FAQ.
-- **Réservation** (`/reserver`) : formulaire sans paiement (coordonnées, pizzas, créneau de
-  retrait), récapitulatif et numéro de réservation.
-- **Caisse** (`/caisse`) : espace bénévoles protégé par un code, suivi des commandes, statuts
-  payée/récupérée, total encaissé et export CSV.
+- **Réservation** (`/reserver`) : formulaire sans paiement (coordonnées, e-mail obligatoire,
+  pizzas, créneau de retrait), récapitulatif, numéro de réservation. Un e-mail est envoyé à la
+  réservation, puis à chaque passage au statut payé ou récupéré.
+- **Admin** (`/caisse`) : espace bénévoles protégé par un mot de passe, suivi des commandes,
+  statuts payée/récupérée (avec e-mail au client), total encaissé et export CSV.
 - **Supabase** : les réservations sont partagées entre appareils dès que Supabase est configuré.
   Sans configuration, le site fonctionne en mode démo local (`localStorage`).
 
