@@ -7,6 +7,7 @@ import {
 } from "./reservation-core";
 import {
   createReservationFn,
+  createStripeCheckoutSessionFn,
   deleteReservationFn,
   listReservationsFn,
   sendReservationEmailFn,
@@ -98,6 +99,17 @@ export async function createReservation(
   }
 
   return { reservation, emailSent };
+}
+
+export function isStripeEnabled(): boolean {
+  return Boolean((import.meta.env["VITE_STRIPE_PUBLISHABLE_KEY"] as string | undefined)?.trim());
+}
+
+export async function createStripeCheckoutSession(input: {
+  reservation: Reservation;
+  origin: string;
+}): Promise<{ checkoutUrl: string; sessionId: string }> {
+  return createStripeCheckoutSessionFn({ data: input });
 }
 
 export async function verifyCaisseCode(code: string): Promise<boolean> {

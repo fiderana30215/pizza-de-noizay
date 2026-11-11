@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { reservationsToCsv } from "@/lib/reservation-core";
+import { createStripeCheckoutSessionRequest } from "@/lib/reservations.functions";
 import {
   createReservation,
   deleteReservation,
@@ -102,6 +103,39 @@ describe("réservations (mode démo local)", () => {
       subject: string;
     };
     expect(pickedUpPayload.subject).toContain("Commande récupérée");
+  });
+
+  it("exige une clé Stripe de test avant de lancer un paiement", async () => {
+    vi.stubEnv("STRIPE_SECRET_KEY", "");
+    vi.stubEnv("VITE_STRIPE_PUBLISHABLE_KEY", "");
+
+    await expect(
+      createStripeCheckoutSessionRequest({
+        reservation: {
+          id: "checkout-test-id",
+          reference: "PN-TEST1",
+          customerName: "Camille Martin",
+          phone: "06 12 34 56 78",
+          email: "camille@exemple.fr",
+          childClass: null,
+          pickupSlot: "18:30",
+          notes: null,
+          items: [
+            {
+              pizzaId: "chevre-miel",
+              name: "Chèvre-miel",
+              quantity: 1,
+              unitPriceCents: 1200,
+            },
+          ],
+          totalCents: 1200,
+          status: "pending",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+        origin: "https://example.com",
+      }),
+    ).rejects.toThrow("Stripe");
   });
 
   it("exporte un CSV lisible", async () => {

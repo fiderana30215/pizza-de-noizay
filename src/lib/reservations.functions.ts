@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import Stripe from "stripe";
 
 import {
   buildReservation,
@@ -46,6 +47,61 @@ export const createReservationFn = createServerFn({ method: "POST" })
 
     return { reservation, emailSent };
   });
+
+export async function createStripeCheckoutSessionRequest(input: {
+  reservation: Reservation;
+  origin: string;
+}): Promise<{ checkoutUrl: string; sessionId: string }> {
+  const stripeSecretKey = process.env.STRIPE_SECRET_KEY?.trim();
+  const publishableKey = (process.env.VITE_STRIPE_PUBLISHABLE_KEY ?? "").trim();
+
+  if (!stripeSecretKey || !publishableKey) {
+    throw new Error(
+      "La clé Stripe de test est absente. Ajoutez STRIPE_SECRET_KEY et VITE_STRIPE_PUBLISHABLE_KEY.",
+    );
+  }
+
+  const stripe = new Stripe(stripeSecretKey);
+  const session = await stripe.checkout.sessions.create({
+    mode: "payment",
+    customer_email: input.reservation.email ?? undefined,
+    billing_address_collection: "required",
+    line_items: [
+      {
+        quantity: 1,
+        price_data: {
+          currency: "eur",
+          unit_amount: Math.max(0, input.reservation.totalCents),
+          product_data: {
+            name: `Commande ${input.reservation.reference}`,
+            description: `Réservation ${input.reservation.reference} · ${input.reservation.items.length} article(s)`,
+          },
+        },
+      },
+    ],
+    metadata: {
+      reservationId: input.reservation.id,
+      reservationReference: input.reservation.reference,
+    },
+    success_url: `${input.origin}/reserver?payment=success&reservationId=${encodeURIComponent(input.reservation.id)}&reference=${encodeURIComponent(input.reservation.reference)}`,
+    cancel_url: `${input.origin}/reserver?payment=cancelled&reservationId=${encodeURIComponent(input.reservation.id)}`,
+  });
+
+  if (!session.url) {
+    throw new Error("Stripe n'a pas renvoyé d'URL de paiement.");
+  }
+
+  return { checkoutUrl: session.url, sessionId: session.id };
+}
+
+export const createStripeCheckoutSessionFn = createServerFn({ method: "POST" })
+  .validator((data: { reservation: Reservation; origin: string }) => {
+    if (!data?.reservation || typeof data.origin !== "string" || !data.origin.trim()) {
+      throw new Error("Données de paiement invalides.");
+    }
+    return data;
+  })
+  .handler(async ({ data }) => createStripeCheckoutSessionRequest(data));
 
 const EMAIL_KINDS = ["confirmation", "paid", "picked_up"] as const;
 type EmailKind = (typeof EMAIL_KINDS)[number];

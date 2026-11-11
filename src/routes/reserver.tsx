@@ -9,7 +9,7 @@ import {
   Minus,
   Plus,
 } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,7 +23,15 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { EVENT, PICKUP_SLOTS, PIZZAS, formatEuros, formatSlot } from "@/lib/event";
-import { createReservation, isValidEmail, type Reservation } from "@/lib/reservations";
+import {
+  createReservation,
+  createStripeCheckoutSession,
+  getLocalCaisseCode,
+  isStripeEnabled,
+  isValidEmail,
+  updateReservationStatus,
+  type Reservation,
+} from "@/lib/reservations";
 
 export const Route = createFileRoute("/reserver")({
   head: () => ({
@@ -53,6 +61,8 @@ type FormState = {
   notes: string;
 };
 
+type PaymentMethod = "cash" | "card";
+
 const EMPTY_FORM: FormState = {
   customerName: "",
   phone: "",
@@ -67,8 +77,46 @@ function ReserverPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [confirmation, setConfirmation] = useState<Reservation | null>(null);
   const [emailSent, setEmailSent] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const payment = params.get("payment");
+    const reservationId = params.get("reservationId");
+
+    if (!payment || !reservationId) {
+      return;
+    }
+
+    if (payment === "success") {
+      void updateReservationStatus(getLocalCaisseCode(), reservationId, "paid")
+        .then(({ reservation, emailSent: paidEmailSent }) => {
+          setConfirmation(reservation);
+          setEmailSent(Boolean(paidEmailSent));
+        })
+        .catch(() => {
+          setSubmitError("Le paiement a bien été validé, mais la réservation n'a pas pu être mise à jour.");
+        })
+        .finally(() => {
+          const nextUrl = new URL(window.location.href);
+          nextUrl.searchParams.delete("payment");
+          nextUrl.searchParams.delete("reservationId");
+          nextUrl.searchParams.delete("reference");
+          window.history.replaceState({}, "", nextUrl.toString());
+        });
+      return;
+    }
+
+    if (payment === "cancelled") {
+      setSubmitError("Le paiement a été annulé. Vous pouvez recommencer ou finaliser la commande sur place.");
+      const nextUrl = new URL(window.location.href);
+      nextUrl.searchParams.delete("payment");
+      nextUrl.searchParams.delete("reservationId");
+      window.history.replaceState({}, "", nextUrl.toString());
+    }
+  }, []);
 
   const totalPizzas = PIZZAS.reduce((sum, pizza) => sum + (quantities[pizza.id] ?? 0), 0);
   const totalCents = PIZZAS.reduce(
@@ -103,6 +151,7 @@ function ReserverPage() {
     setQuantities({});
     setErrors({});
     setSubmitError(null);
+    setPaymentMethod("cash");
     setConfirmation(null);
     setEmailSent(false);
   }
@@ -141,7 +190,24 @@ function ReserverPage() {
     setIsSubmitting(true);
 
     try {
+      if (paymentMethod === "card" && !isStripeEnabled()) {
+        setSubmitError(
+          "Le paiement par carte est sélectionné, mais Stripe n'est pas configuré. Active les clés de test ou choisissez l'espèce.",
+        );
+        return;
+      }
+
       const result = await createReservation({ ...form, quantities });
+
+      if (paymentMethod === "card") {
+        const { checkoutUrl } = await createStripeCheckoutSession({
+          reservation: result.reservation,
+          origin: window.location.origin,
+        });
+        window.location.assign(checkoutUrl);
+        return;
+      }
+
       setConfirmation(result.reservation);
       setEmailSent(result.emailSent);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -392,10 +458,55 @@ function ReserverPage() {
                 </span>
               </div>
 
-              <p className="mt-3 flex items-start gap-2 rounded-xl bg-accent/10 p-3 text-xs text-foreground/90">
-                <CreditCard className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-                <span>Paiement : espèces ou carte bancaire, sur place au moment du retrait.</span>
-              </p>
+              <div className="mt-4">
+                <p className="text-sm font-bold text-foreground">Mode de paiement</p>
+                <div className="mt-2 grid gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("cash")}
+                    className={`flex items-center justify-between rounded-2xl border p-3 text-left transition ${
+                      paymentMethod === "cash"
+                        ? "border-primary bg-primary/5 text-primary"
+                        : "border-border bg-background text-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="rounded-full bg-accent/10 p-1.5 text-accent">
+                        <CreditCard className="h-4 w-4" />
+                      </span>
+                      <span>
+                        <span className="block font-bold">Espèces</span>
+                        <span className="block text-xs opacity-70">Payez au retrait</span>
+                      </span>
+                    </span>
+                    {paymentMethod === "cash" && <span className="text-xs font-bold">Choisi</span>}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("card")}
+                    disabled={!isStripeEnabled()}
+                    className={`flex items-center justify-between rounded-2xl border p-3 text-left transition ${
+                      paymentMethod === "card"
+                        ? "border-primary bg-primary/5 text-primary"
+                        : "border-border bg-background text-foreground hover:bg-muted"
+                    } disabled:cursor-not-allowed disabled:opacity-50`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="rounded-full bg-accent/10 p-1.5 text-accent">
+                        <CreditCard className="h-4 w-4" />
+                      </span>
+                      <span>
+                        <span className="block font-bold">Carte bancaire</span>
+                        <span className="block text-xs opacity-70">
+                          {isStripeEnabled() ? "Paiement sécurisé Stripe" : "Stripe non activé"}
+                        </span>
+                      </span>
+                    </span>
+                    {paymentMethod === "card" && <span className="text-xs font-bold">Choisi</span>}
+                  </button>
+                </div>
+              </div>
 
               {submitError && (
                 <p
@@ -411,7 +522,11 @@ function ReserverPage() {
                 disabled={isSubmitting}
                 className="mt-4 w-full rounded-full bg-primary px-6 py-4 text-lg font-bold text-primary-foreground shadow-lg transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {isSubmitting ? "Enregistrement…" : "Valider ma réservation"}
+                {isSubmitting
+                  ? "Enregistrement…"
+                  : paymentMethod === "card"
+                    ? "Payer par carte"
+                    : "Valider ma réservation"}
               </button>
 
               <p className="mt-3 text-center text-xs text-muted-foreground">
