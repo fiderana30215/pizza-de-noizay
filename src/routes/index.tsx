@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, CalendarDays, CreditCard, MapPin } from "lucide-react";
+import { ArrowRight, CalendarDays, CreditCard, MapPin, X } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import background from "@/assets/pizzafond1.png";
 import chevreMielImage from "@/assets/pizzamiel.png";
@@ -16,7 +17,7 @@ const PIZZA_IMAGES: Record<string, { src: string; webp?: string }> = {
   regina: { src: reginaImage },
 };
 
-const MENU_GALLERY = [whatsappImageOne, whatsappImageTwo];
+const MENU_GALLERY = [whatsappImageOne, whatsappImageTwo] as const;
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -41,6 +42,29 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const [selectedPhoto, setSelectedPhoto] = useState<{
+    src: string;
+    alt: string;
+    caption: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!selectedPhoto) return;
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setSelectedPhoto(null);
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedPhoto]);
+
   return (
     <main>
       <section
@@ -119,8 +143,8 @@ function Index() {
       </section>
 
       <PageBackground>
-        <section className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:py-8">
-          <div className="grid gap-5 lg:grid-cols-[1.35fr_0.95fr]">
+        <section className="w-full px-3 py-6 sm:px-6 lg:px-5 lg:py-8">
+          <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
             <Reveal className="rounded-3xl bg-card p-4 shadow-md sm:p-5">
               <p className="font-script text-xl text-accent">Le menu</p>
               <h2 className="mt-1 text-2xl font-bold text-primary sm:text-3xl">Pizzas à 12 €</h2>
@@ -197,13 +221,24 @@ function Index() {
                 </span>
               </div>
 
-              <div className="relative mx-auto mt-3 min-h-[290px] max-w-[460px] overflow-hidden rounded-2xl bg-white/[0.025] sm:min-h-[330px]">
+              <div className="relative mt-3 min-h-[390px] overflow-hidden rounded-2xl bg-white/[0.025] sm:min-h-[500px] lg:min-h-[580px]">
                 <div
                   aria-hidden
                   className="absolute inset-0 bg-[radial-gradient(circle_at_50%_48%,rgba(255,255,255,0.07),transparent_65%)]"
                 />
 
-                <figure className="absolute left-[5%] top-[15%] z-10 w-[53%] rotate-[-7deg] bg-[#fffdf8] p-2 pb-9 shadow-[0_18px_34px_rgba(0,0,0,0.42)] transition-transform duration-300 hover:z-30 hover:rotate-[-3deg] hover:scale-[1.03] sm:left-[7%] sm:top-[13%] sm:w-[52%] sm:p-2.5 sm:pb-10">
+                <button
+                  type="button"
+                  aria-label="Agrandir la photo : Un beau moment"
+                  onClick={() =>
+                    setSelectedPhoto({
+                      src: MENU_GALLERY[0],
+                      alt: "Un moment partagé pendant la soirée pizza",
+                      caption: "Un beau moment",
+                    })
+                  }
+                  className="absolute left-[2%] top-[18%] z-10 w-[62%] rotate-[-7deg] bg-[#fffdf8] p-2 pb-9 text-left shadow-[0_18px_34px_rgba(0,0,0,0.42)] transition-transform duration-300 hover:z-30 hover:rotate-[-3deg] hover:scale-[1.03] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent sm:left-[4%] sm:top-[14%] sm:w-[60%] sm:p-3 sm:pb-12"
+                >
                   <img
                     src={MENU_GALLERY[0]}
                     alt="Un moment partagé pendant la soirée pizza"
@@ -211,12 +246,23 @@ function Index() {
                     loading="lazy"
                     decoding="async"
                   />
-                  <figcaption className="absolute inset-x-2 bottom-2 text-center font-script text-base text-[#30352f] sm:bottom-2.5 sm:text-lg">
+                  <span className="absolute inset-x-2 bottom-2 text-center font-script text-base text-[#30352f] sm:bottom-3 sm:text-xl">
                     Un beau moment
-                  </figcaption>
-                </figure>
+                  </span>
+                </button>
 
-                <figure className="absolute right-[5%] top-[9%] z-20 w-[53%] rotate-[6deg] bg-[#fffdf8] p-2 pb-9 shadow-[0_20px_38px_rgba(0,0,0,0.48)] transition-transform duration-300 hover:rotate-[2deg] hover:scale-[1.03] sm:right-[7%] sm:top-[8%] sm:w-[52%] sm:p-2.5 sm:pb-10">
+                <button
+                  type="button"
+                  aria-label="Agrandir la photo : Pizza et convivialité"
+                  onClick={() =>
+                    setSelectedPhoto({
+                      src: MENU_GALLERY[1],
+                      alt: "Les invités réunis autour d'une pizza",
+                      caption: "Pizza & convivialité",
+                    })
+                  }
+                  className="absolute right-[2%] top-[8%] z-20 w-[62%] rotate-[6deg] bg-[#fffdf8] p-2 pb-9 text-left shadow-[0_20px_38px_rgba(0,0,0,0.48)] transition-transform duration-300 hover:rotate-[2deg] hover:scale-[1.03] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent sm:right-[4%] sm:top-[7%] sm:w-[60%] sm:p-3 sm:pb-12"
+                >
                   <img
                     src={MENU_GALLERY[1]}
                     alt="Les invités réunis autour d'une pizza"
@@ -224,19 +270,50 @@ function Index() {
                     loading="lazy"
                     decoding="async"
                   />
-                  <figcaption className="absolute inset-x-2 bottom-2 text-center font-script text-base text-[#30352f] sm:bottom-2.5 sm:text-lg">
+                  <span className="absolute inset-x-2 bottom-2 text-center font-script text-base text-[#30352f] sm:bottom-3 sm:text-xl">
                     Pizza & convivialité
-                  </figcaption>
-                </figure>
+                  </span>
+                </button>
               </div>
 
-              <p className="mt-3 text-center text-xs tracking-wide text-white/60">
-                Des pizzas généreuses, des sourires et un moment à partager.
-              </p>
             </Reveal>
           </div>
         </section>
       </PageBackground>
+
+      {selectedPhoto && (
+        <div
+          className="photo-lightbox-backdrop fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-4 backdrop-blur-md sm:p-8"
+          role="dialog"
+          aria-modal="true"
+          aria-label={selectedPhoto.caption}
+        >
+          <button
+            type="button"
+            aria-label="Fermer la photo agrandie"
+            onClick={() => setSelectedPhoto(null)}
+            className="absolute inset-0 cursor-zoom-out"
+          />
+          <div className="photo-lightbox-image relative z-10 max-h-[92vh] max-w-[94vw] bg-[#fffdf8] p-3 pb-12 shadow-2xl sm:p-4 sm:pb-14">
+            <img
+              src={selectedPhoto.src}
+              alt={selectedPhoto.alt}
+              className="max-h-[78vh] max-w-[88vw] object-contain"
+            />
+            <p className="absolute inset-x-2 bottom-2 text-center font-script text-xl text-[#30352f] sm:bottom-3 sm:text-2xl">
+              {selectedPhoto.caption}
+            </p>
+          </div>
+          <button
+            type="button"
+            aria-label="Fermer la photo agrandie"
+            onClick={() => setSelectedPhoto(null)}
+            className="absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/50 text-white transition hover:bg-black/75 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:right-6 sm:top-6"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+      )}
     </main>
   );
 }
