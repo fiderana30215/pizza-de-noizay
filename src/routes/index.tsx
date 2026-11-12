@@ -219,7 +219,7 @@ function Index() {
                   </h2>
                 </div>
                 <span className="mt-1 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/75">
-                  Noizay · 2026
+                  Noizay · 2025
                 </span>
               </div>
 
