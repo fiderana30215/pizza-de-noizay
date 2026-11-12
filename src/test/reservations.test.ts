@@ -14,7 +14,7 @@ const BASE_INPUT = {
   phone: "06 12 34 56 78",
   email: "camille@exemple.fr",
   pickupSlot: "18:30",
-  quantities: { "chevre-miel": 2, regina: 1 },
+  quantities: { "quatre-fromages": 2, regina: 1 },
 };
 
 describe("réservations (mode démo local)", () => {
@@ -34,7 +34,7 @@ describe("réservations (mode démo local)", () => {
 
     expect(reservation.reference).toMatch(/^PN-[A-Z2-9]{5}$/);
     expect(reservation.items).toHaveLength(2);
-    expect(reservation.totalCents).toBe(3 * 1200);
+    expect(reservation.totalCents).toBe(2 * 1300 + 1200);
     expect(reservation.email).toBe("camille@exemple.fr");
     expect(emailSent).toBe(false);
 
@@ -122,13 +122,13 @@ describe("réservations (mode démo local)", () => {
           notes: null,
           items: [
             {
-              pizzaId: "chevre-miel",
-              name: "Chèvre-miel",
+              pizzaId: "quatre-fromages",
+              name: "4 fromages",
               quantity: 1,
-              unitPriceCents: 1200,
+              unitPriceCents: 1300,
             },
           ],
-          totalCents: 1200,
+          totalCents: 1300,
           status: "pending",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -145,6 +145,6 @@ describe("réservations (mode démo local)", () => {
     expect(csv).toContain('"Numéro";"Créée le"');
     expect(csv).toContain(reservation.reference);
     expect(csv).toContain("Camille Martin");
-    expect(csv).toContain("2× Chèvre-miel");
+    expect(csv).toContain("2× 4 fromages");
   });
 });

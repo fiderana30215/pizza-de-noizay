@@ -25,11 +25,11 @@ export type Pizza = {
 
 export const PIZZAS: readonly Pizza[] = [
   {
-    id: "chevre-miel",
-    name: "Chèvre-miel",
-    description: "Crème fraîche, mozzarella, fromage de chèvre, miel, noix",
-    priceCents: 1200,
-    emoji: "🍯",
+    id: "quatre-fromages",
+    name: "4 fromages",
+    description: "Tomate, mozzarella, gorgonzola, chèvre, comté",
+    priceCents: 1300,
+    emoji: "🧀",
     vegetarian: true,
   },
   {

@@ -3,8 +3,9 @@ import { ArrowRight, CalendarDays, CreditCard, MapPin, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import background from "@/assets/pizzafond1.png";
-import chevreMielImage from "@/assets/pizzamiel.png";
-import chevreMielWebp from "@/assets/pizzamiel.webp";
+import quatreFromagesImage from "@/assets/pizzamiel.png";
+
+
 import reginaImage from "@/assets/pizzaregina.png";
 import whatsappImageOne from "@/assets/WhatsApp Image 2026-11-11 at 09.27.32.jpeg";
 import whatsappImageTwo from "@/assets/WhatsApp Image 2026-11-11 at 09.27.33.jpeg";
@@ -13,7 +14,8 @@ import { Reveal } from "@/components/reveal";
 import { EVENT, PIZZAS, formatEuros } from "@/lib/event";
 
 const PIZZA_IMAGES: Record<string, { src: string; webp?: string }> = {
-  "chevre-miel": { src: chevreMielImage, webp: chevreMielWebp },
+  "quatre-fromages": { src: quatreFromagesImage },
+
   regina: { src: reginaImage },
 };
 
@@ -147,7 +149,7 @@ function Index() {
           <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
             <Reveal className="rounded-3xl bg-card p-4 shadow-md sm:p-5">
               <p className="font-script text-xl text-accent">Le menu</p>
-              <h2 className="mt-1 text-2xl font-bold text-primary sm:text-3xl">Pizzas à 12 €</h2>
+              <h2 className="mt-1 text-2xl font-bold text-primary sm:text-3xl">Pizzas à 13 €</h2>
               <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
                 Deux pizzas au choix, préparées par la boulangerie. Commande en ligne, retrait sur
                 place.
