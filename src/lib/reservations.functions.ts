@@ -113,8 +113,8 @@ type SendReservationEmailInput = {
 
 /**
  * Envoi d'un e-mail lié à une réservation pour le mode démo local, où la
- * réservation n'est pas enregistrée côté serveur. L'envoi est ignoré si Resend
- * n'est pas configuré.
+ * réservation n'est pas enregistrée côté serveur. L'envoi est ignoré si aucun
+ * transport d'e-mail n'est configuré.
  */
 export const sendReservationEmailFn = createServerFn({ method: "POST" })
   .validator((data: SendReservationEmailInput) => {

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { reservationsToCsv } from "@/lib/reservation-core";
+import { buildReservation, reservationsToCsv } from "@/lib/reservation-core";
 import { createStripeCheckoutSessionRequest } from "@/lib/reservations.functions";
 import {
   createReservation,
@@ -103,6 +103,38 @@ describe("réservations (mode démo local)", () => {
       subject: string;
     };
     expect(pickedUpPayload.subject).toContain("Commande récupérée");
+  });
+
+  it("utilise Google Apps Script en priorité sur Resend", async () => {
+    vi.stubEnv("RESEND_API_KEY", "re_test");
+    vi.stubEnv("GOOGLE_SCRIPT_EMAIL_URL", "https://script.google.com/macros/s/test/exec");
+    vi.stubEnv("GOOGLE_SCRIPT_EMAIL_SECRET", "test-shared-secret");
+
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response("ok", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { sendReservationEmail } = await import("@/lib/email.server");
+    const sent = await sendReservationEmail(buildReservation(BASE_INPUT));
+
+    expect(sent).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("https://script.google.com/macros/s/test/exec");
+    const payload = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body)) as {
+      secret: string;
+      to: string;
+    };
+    expect(payload.secret).toBe("test-shared-secret");
+    expect(payload.to).toBe("camille@exemple.fr");
+  });
+
+  it("indique un échec si Google Apps Script ne répond pas avec ok", async () => {
+    vi.stubEnv("GOOGLE_SCRIPT_EMAIL_URL", "https://script.google.com/macros/s/test/exec");
+    vi.stubEnv("GOOGLE_SCRIPT_EMAIL_SECRET", "test-shared-secret");
+    vi.stubGlobal("fetch", vi.fn<typeof fetch>().mockResolvedValue(new Response("unauthorized")));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const { sendReservationEmail } = await import("@/lib/email.server");
+    await expect(sendReservationEmail(buildReservation(BASE_INPUT))).resolves.toBe(false);
   });
 
   it("exige une clé Stripe de test avant de lancer un paiement", async () => {
