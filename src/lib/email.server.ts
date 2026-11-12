@@ -182,7 +182,7 @@ function buildEmail(
 }
 
 /**
- * Envoie un e-mail lié à une réservation via Resend :
+ * Envoie un e-mail lié à une réservation via Apps Script ou Resend :
  * confirmation, paiement reçu ou commande récupérée.
  * Retourne `false` si l'envoi n'est pas configuré ou a échoué : la réservation
  * reste enregistrée dans tous les cas.

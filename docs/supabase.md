@@ -35,9 +35,11 @@ dans un fichier `.env` en local) :
 | `SUPABASE_SERVICE_ROLE_KEY` | serveur    | Écriture/lecture sécurisée (ne jamais exposer) |
 | `CAISSE_CODE`               | serveur    | Mot de passe de l'espace admin (mode Supabase) |
 | `VITE_CAISSE_CODE`          | navigateur | Mot de passe en mode démo local (optionnel)    |
-| `RESEND_API_KEY`            | serveur    | Clé Resend pour les e-mails de réservation     |
-| `RESERVATION_EMAIL_FROM`    | serveur    | Expéditeur vérifié (ex. `Soirée Pizza <...>`)  |
+| `RESEND_API_KEY`            | serveur    | Clé Resend (optionnelle si Apps Script est configuré) |
+| `RESERVATION_EMAIL_FROM`    | serveur    | Expéditeur Resend vérifié (optionnel avec Apps Script) |
 | `RESERVATION_EMAIL_REPLY_TO`| serveur    | Adresse de réponse optionnelle                 |
+| `GOOGLE_SCRIPT_EMAIL_URL`   | serveur    | URL `/exec` du Web App Google Apps Script      |
+| `GOOGLE_SCRIPT_EMAIL_SECRET`| serveur   | Secret partagé avec le script Google          |
 
 > Sans `VITE_SUPABASE_URL`, le site reste en mode démo local même si les
 > variables serveur sont présentes.
@@ -54,13 +56,24 @@ dans un fichier `.env` en local) :
 
 ## 4. Envoyer les e-mails de réservation
 
-Les e-mails partent via [Resend](https://resend.com) :
+Les e-mails peuvent partir avec [Resend](https://resend.com) ou Google Apps
+Script/Gmail. Si `GOOGLE_SCRIPT_EMAIL_URL` est défini, Apps Script est utilisé
+en priorité ; sinon l'application utilise Resend si `RESEND_API_KEY` est défini.
+
+### Option A — Resend
 
 1. Créez un compte Resend et une clé API.
 2. Ajoutez le secret `RESEND_API_KEY`.
 3. Vérifiez votre domaine dans Resend, puis renseignez `RESERVATION_EMAIL_FROM`
    avec un expéditeur de ce domaine (en test, `onboarding@resend.dev` fonctionne
    uniquement vers l'adresse du compte Resend).
+
+### Option B — Google Apps Script / Gmail
+
+Suivez le guide complet [Configurer l'envoi avec Google Apps Script](./google-apps-script-email.md).
+Le script prêt à déployer est [`google-apps-script-email.gs`](./google-apps-script-email.gs).
+Cette option ne demande pas de domaine personnalisé, mais utilise les quotas et
+les règles anti-spam de Google.
 
 Trois e-mails sont envoyés au client :
 
@@ -73,8 +86,9 @@ Trois e-mails sont envoyés au client :
 Ces e-mails ne partent qu'une fois par changement de statut : réenregistrer le
 même statut ne renvoie rien.
 
-Sans `RESEND_API_KEY`, la réservation est quand même enregistrée : l'écran de
-confirmation indique simplement que l'e-mail n'a pas pu être envoyé.
+Si aucun transport n'est configuré ou si le fournisseur refuse l'envoi, la
+réservation est quand même enregistrée : l'écran de confirmation indique
+simplement que l'e-mail n'a pas pu être envoyé.
 
 ## 5. Fonctionnement
 
