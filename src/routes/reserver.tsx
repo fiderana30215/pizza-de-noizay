@@ -24,12 +24,11 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { EVENT, PICKUP_SLOTS, PIZZAS, formatEuros, formatSlot } from "@/lib/event";
 import {
+  createHelloAssoCheckoutSession,
   createReservation,
-  createStripeCheckoutSession,
-  getLocalCaisseCode,
-  isStripeEnabled,
+  isHelloAssoEnabled,
   isValidEmail,
-  updateReservationStatus,
+  verifyHelloAssoPayment,
   type Reservation,
 } from "@/lib/reservations";
 
@@ -85,35 +84,58 @@ function ReserverPage() {
     const params = new URLSearchParams(window.location.search);
     const payment = params.get("payment");
     const reservationId = params.get("reservationId");
+    const checkoutIntentId = params.get("checkoutIntentId");
 
     if (!payment || !reservationId) {
       return;
     }
 
-    if (payment === "success") {
-      void updateReservationStatus(getLocalCaisseCode(), reservationId, "paid")
-        .then(({ reservation, emailSent: paidEmailSent }) => {
-          setConfirmation(reservation);
-          setEmailSent(Boolean(paidEmailSent));
-        })
-        .catch(() => {
-          setSubmitError("Le paiement a bien été validé, mais la réservation n'a pas pu être mise à jour.");
-        })
-        .finally(() => {
-          const nextUrl = new URL(window.location.href);
-          nextUrl.searchParams.delete("payment");
-          nextUrl.searchParams.delete("reservationId");
-          nextUrl.searchParams.delete("reference");
-          window.history.replaceState({}, "", nextUrl.toString());
-        });
+    if (payment === "return") {
+      if (!checkoutIntentId) {
+        setSubmitError("Le retour HelloAsso ne contient pas la référence du paiement.");
+      } else {
+        void verifyHelloAssoPayment({ reservationId, checkoutIntentId })
+          .then(({ reservation, emailSent: paidEmailSent }) => {
+            setConfirmation(reservation);
+            setEmailSent(Boolean(paidEmailSent));
+          })
+          .catch(() => {
+            setSubmitError(
+              "Le paiement n'a pas pu être vérifié. Contactez l'association avant de repayer.",
+            );
+          })
+          .finally(() => {
+            const nextUrl = new URL(window.location.href);
+            nextUrl.searchParams.delete("payment");
+            nextUrl.searchParams.delete("reservationId");
+            nextUrl.searchParams.delete("checkoutIntentId");
+            nextUrl.searchParams.delete("code");
+            nextUrl.searchParams.delete("orderId");
+            window.history.replaceState({}, "", nextUrl.toString());
+          });
+      }
       return;
     }
 
     if (payment === "cancelled") {
-      setSubmitError("Le paiement a été annulé. Vous pouvez recommencer ou finaliser la commande sur place.");
+      setSubmitError(
+        "Le paiement a été annulé. Vous pouvez recommencer ou finaliser la commande sur place.",
+      );
       const nextUrl = new URL(window.location.href);
       nextUrl.searchParams.delete("payment");
       nextUrl.searchParams.delete("reservationId");
+      window.history.replaceState({}, "", nextUrl.toString());
+    }
+
+    if (payment === "error") {
+      setSubmitError(
+        "Une erreur est survenue pendant le paiement HelloAsso. Vous pouvez réessayer.",
+      );
+      const nextUrl = new URL(window.location.href);
+      nextUrl.searchParams.delete("payment");
+      nextUrl.searchParams.delete("reservationId");
+      nextUrl.searchParams.delete("checkoutIntentId");
+      nextUrl.searchParams.delete("error");
       window.history.replaceState({}, "", nextUrl.toString());
     }
   }, []);
@@ -190,9 +212,9 @@ function ReserverPage() {
     setIsSubmitting(true);
 
     try {
-      if (paymentMethod === "card" && !isStripeEnabled()) {
+      if (paymentMethod === "card" && !isHelloAssoEnabled()) {
         setSubmitError(
-          "Le paiement par carte est sélectionné, mais Stripe n'est pas configuré. Active les clés de test ou choisissez l'espèce.",
+          "Le paiement par carte est sélectionné, mais Hello Asso n'est pas configuré. Configurez HELLOASSO_FORM_URL ou choisissez l'espèce.",
         );
         return;
       }
@@ -200,9 +222,8 @@ function ReserverPage() {
       const result = await createReservation({ ...form, quantities });
 
       if (paymentMethod === "card") {
-        const { checkoutUrl } = await createStripeCheckoutSession({
+        const { checkoutUrl } = await createHelloAssoCheckoutSession({
           reservation: result.reservation,
-          origin: window.location.origin,
         });
         window.location.assign(checkoutUrl);
         return;
@@ -485,7 +506,7 @@ function ReserverPage() {
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("card")}
-                    disabled={!isStripeEnabled()}
+                    disabled={!isHelloAssoEnabled()}
                     className={`flex items-center justify-between rounded-2xl border p-3 text-left transition ${
                       paymentMethod === "card"
                         ? "border-primary bg-primary/5 text-primary"
@@ -499,7 +520,9 @@ function ReserverPage() {
                       <span>
                         <span className="block font-bold">Carte bancaire</span>
                         <span className="block text-xs opacity-70">
-                          {isStripeEnabled() ? "Paiement sécurisé Stripe" : "Stripe non activé"}
+                          {isHelloAssoEnabled()
+                            ? "Paiement sécurisé Hello Asso"
+                            : "Hello Asso non activé"}
                         </span>
                       </span>
                     </span>
