@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import background from "@/assets/pizzafond1.png";
 import quatreFromagesImage from "@/assets/pizzamiel.png";
 
-
 import reginaImage from "@/assets/pizzaregina.png";
 import whatsappImageOne from "@/assets/WhatsApp Image 2026-11-11 at 09.27.32.jpeg";
 import whatsappImageTwo from "@/assets/WhatsApp Image 2026-11-11 at 09.27.33.jpeg";
@@ -139,7 +138,7 @@ function Index() {
             delay={500}
           >
             <CreditCard className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>Paiement : espèces ou carte bancaire, sur place au moment du retrait.</span>
+            <span>Paiement en espèces sur place ou par CB à la commande</span>
           </Reveal>
         </div>
       </section>
@@ -212,9 +211,7 @@ function Index() {
                   <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/55">
                     Noizay · 2025
                   </p>
-                  <h2 className="mt-1 font-script text-2xl text-accent sm:text-3xl">
-                    Nos moments
-                  </h2>
+                  <h2 className="mt-1 font-script text-2xl text-accent sm:text-3xl">Nos moments</h2>
                 </div>
               </div>
 
@@ -272,7 +269,6 @@ function Index() {
                   </span>
                 </button>
               </div>
-
             </Reveal>
           </div>
         </section>
