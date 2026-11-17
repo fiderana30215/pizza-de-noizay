@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { buildReservation, reservationsToCsv } from "@/lib/reservation-core";
-import { createStripeCheckoutSessionRequest } from "@/lib/reservations.functions";
+import { createHelloAssoCheckoutIntentRequest } from "@/lib/reservations.functions";
 import {
   createReservation,
   deleteReservation,
@@ -143,12 +143,12 @@ describe("réservations (mode démo local)", () => {
     await expect(sendReservationEmail(buildReservation(BASE_INPUT))).resolves.toBe(false);
   });
 
-  it("exige une clé Stripe de test avant de lancer un paiement", async () => {
-    vi.stubEnv("STRIPE_SECRET_KEY", "");
-    vi.stubEnv("VITE_STRIPE_PUBLISHABLE_KEY", "");
+  it("exige les identifiants API HelloAsso avant de lancer un paiement", async () => {
+    vi.stubEnv("HELLOASSO_CLIENT_ID", "");
+    vi.stubEnv("HELLOASSO_CLIENT_SECRET", "");
 
     await expect(
-      createStripeCheckoutSessionRequest({
+      createHelloAssoCheckoutIntentRequest({
         reservation: {
           id: "checkout-test-id",
           reference: "PN-TEST1",
@@ -171,9 +171,59 @@ describe("réservations (mode démo local)", () => {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
-        origin: "https://example.com",
       }),
-    ).rejects.toThrow("Stripe");
+    ).rejects.toThrow("HelloAsso");
+  });
+
+  it("crée un checkout HelloAsso avec le montant et les métadonnées de réservation", async () => {
+    vi.stubEnv("HELLOASSO_CLIENT_ID", "client-test");
+    vi.stubEnv("HELLOASSO_CLIENT_SECRET", "secret-test");
+    vi.stubEnv("PUBLIC_SITE_URL", "https://pizza.example");
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            access_token: "access-test",
+            refresh_token: "refresh-test",
+            expires_in: 1799,
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({ id: 123, redirectUrl: "https://www.helloasso.com/checkout/123" }),
+          { status: 200 },
+        ),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+    const reservation = buildReservation(BASE_INPUT);
+
+    await expect(createHelloAssoCheckoutIntentRequest({ reservation })).resolves.toEqual({
+      checkoutUrl: "https://www.helloasso.com/checkout/123",
+      sessionId: "123",
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("https://api.helloasso.com/oauth2/token");
+    expect(fetchMock.mock.calls[1]?.[0]).toBe(
+      "https://api.helloasso.com/v5/organizations/association-des-parents-d-eleves-de-noizay/checkout-intents",
+    );
+    const checkoutRequest = fetchMock.mock.calls[1]?.[1];
+    const payload = JSON.parse(String(checkoutRequest?.body)) as {
+      totalAmount: number;
+      initialAmount: number;
+      containsDonation: boolean;
+      returnUrl: string;
+      metadata: { reservationId: string; reservationReference: string };
+    };
+    expect(payload.totalAmount).toBe(reservation.totalCents);
+    expect(payload.initialAmount).toBe(reservation.totalCents);
+    expect(payload.containsDonation).toBe(false);
+    expect(payload.returnUrl).toContain("payment=return");
+    expect(payload.metadata.reservationId).toBe(reservation.id);
+    expect(payload.metadata.reservationReference).toBe(reservation.reference);
   });
 
   it("exporte un CSV lisible", async () => {

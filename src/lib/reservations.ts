@@ -6,12 +6,13 @@ import {
   type ReservationStatus,
 } from "./reservation-core";
 import {
+  createHelloAssoCheckoutSessionFn,
   createReservationFn,
-  createStripeCheckoutSessionFn,
   deleteReservationFn,
   listReservationsFn,
   sendReservationEmailFn,
   updateReservationStatusFn,
+  verifyHelloAssoPaymentFn,
   verifyCaisseCodeFn,
 } from "./reservations.functions";
 
@@ -101,15 +102,24 @@ export async function createReservation(
   return { reservation, emailSent };
 }
 
-export function isStripeEnabled(): boolean {
-  return Boolean((import.meta.env["VITE_STRIPE_PUBLISHABLE_KEY"] as string | undefined)?.trim());
+export function isHelloAssoEnabled(): boolean {
+  return Boolean(
+    (import.meta.env["VITE_SUPABASE_URL"] as string | undefined)?.trim() &&
+    (import.meta.env["VITE_HELLOASSO_ENABLED"] as string | undefined)?.trim() === "true",
+  );
 }
 
-export async function createStripeCheckoutSession(input: {
+export async function createHelloAssoCheckoutSession(input: {
   reservation: Reservation;
-  origin: string;
 }): Promise<{ checkoutUrl: string; sessionId: string }> {
-  return createStripeCheckoutSessionFn({ data: input });
+  return createHelloAssoCheckoutSessionFn({ data: { reservationId: input.reservation.id } });
+}
+
+export async function verifyHelloAssoPayment(input: {
+  reservationId: string;
+  checkoutIntentId: string;
+}): Promise<UpdateStatusResult> {
+  return verifyHelloAssoPaymentFn({ data: input });
 }
 
 export async function verifyCaisseCode(code: string): Promise<boolean> {

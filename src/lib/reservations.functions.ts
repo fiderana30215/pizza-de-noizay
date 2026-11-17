@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import Stripe from "stripe";
 
 import {
   buildReservation,
@@ -12,6 +11,31 @@ import {
 } from "./reservation-core";
 
 const VALID_STATUSES: ReservationStatus[] = ["pending", "paid", "picked_up", "cancelled"];
+const HELLOASSO_ORGANIZATION_SLUG = "association-des-parents-d-eleves-de-noizay";
+
+type HelloAssoTokenResponse = {
+  access_token?: unknown;
+  refresh_token?: unknown;
+  expires_in?: unknown;
+};
+
+type HelloAssoCheckoutResponse = {
+  id?: unknown;
+  redirectUrl?: unknown;
+};
+
+type HelloAssoCheckoutVerification = {
+  metadata?: { reservationId?: unknown };
+  order?: {
+    amount?: { total?: unknown };
+    payments?: Array<{ state?: unknown; amount?: unknown }>;
+  };
+};
+
+let helloAssoAccessToken = "";
+let helloAssoRefreshToken = "";
+let helloAssoTokenExpiresAt = 0;
+let helloAssoTokenRequest: Promise<string> | null = null;
 
 async function getAdmin() {
   const { getSupabaseAdmin } = await import("./supabase-admin.server");
@@ -48,60 +72,239 @@ export const createReservationFn = createServerFn({ method: "POST" })
     return { reservation, emailSent };
   });
 
-export async function createStripeCheckoutSessionRequest(input: {
-  reservation: Reservation;
-  origin: string;
-}): Promise<{ checkoutUrl: string; sessionId: string }> {
-  const stripeSecretKey = process.env.STRIPE_SECRET_KEY?.trim();
-  const publishableKey = (process.env.VITE_STRIPE_PUBLISHABLE_KEY ?? "").trim();
+async function getHelloAssoAccessToken(): Promise<string> {
+  if (helloAssoAccessToken && helloAssoTokenExpiresAt > Date.now() + 60_000) {
+    return helloAssoAccessToken;
+  }
+  if (helloAssoTokenRequest) return helloAssoTokenRequest;
 
-  if (!stripeSecretKey || !publishableKey) {
+  const clientId = process.env["HELLOASSO_CLIENT_ID"]?.trim();
+  const clientSecret = process.env["HELLOASSO_CLIENT_SECRET"]?.trim();
+  if (!clientId || !clientSecret) {
     throw new Error(
-      "La clé Stripe de test est absente. Ajoutez STRIPE_SECRET_KEY et VITE_STRIPE_PUBLISHABLE_KEY.",
+      "HelloAsso n'est pas configuré. Ajoutez HELLOASSO_CLIENT_ID et HELLOASSO_CLIENT_SECRET côté serveur.",
     );
   }
 
-  const stripe = new Stripe(stripeSecretKey);
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    customer_email: input.reservation.email ?? undefined,
-    billing_address_collection: "required",
-    line_items: [
-      {
-        quantity: 1,
-        price_data: {
-          currency: "eur",
-          unit_amount: Math.max(0, input.reservation.totalCents),
-          product_data: {
-            name: `Commande ${input.reservation.reference}`,
-            description: `Réservation ${input.reservation.reference} · ${input.reservation.items.length} article(s)`,
+  helloAssoTokenRequest = (async () => {
+    const body = new URLSearchParams(
+      helloAssoRefreshToken
+        ? { grant_type: "refresh_token", refresh_token: helloAssoRefreshToken }
+        : {
+            grant_type: "client_credentials",
+            client_id: clientId,
+            client_secret: clientSecret,
           },
-        },
-      },
-    ],
-    metadata: {
-      reservationId: input.reservation.id,
-      reservationReference: input.reservation.reference,
-    },
-    success_url: `${input.origin}/reserver?payment=success&reservationId=${encodeURIComponent(input.reservation.id)}&reference=${encodeURIComponent(input.reservation.reference)}`,
-    cancel_url: `${input.origin}/reserver?payment=cancelled&reservationId=${encodeURIComponent(input.reservation.id)}`,
-  });
+    );
+    const response = await fetch("https://api.helloasso.com/oauth2/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body,
+    });
 
-  if (!session.url) {
-    throw new Error("Stripe n'a pas renvoyé d'URL de paiement.");
+    if (!response.ok) {
+      throw new Error(`L'authentification HelloAsso a échoué (HTTP ${response.status}).`);
+    }
+
+    const result = (await response.json()) as HelloAssoTokenResponse;
+    if (
+      typeof result.access_token !== "string" ||
+      typeof result.refresh_token !== "string" ||
+      typeof result.expires_in !== "number"
+    ) {
+      throw new Error("La réponse d'authentification HelloAsso est invalide.");
+    }
+
+    helloAssoAccessToken = result.access_token;
+    helloAssoRefreshToken = result.refresh_token;
+    helloAssoTokenExpiresAt = Date.now() + result.expires_in * 1000;
+    return helloAssoAccessToken;
+  })();
+
+  try {
+    return await helloAssoTokenRequest;
+  } finally {
+    helloAssoTokenRequest = null;
   }
-
-  return { checkoutUrl: session.url, sessionId: session.id };
 }
 
-export const createStripeCheckoutSessionFn = createServerFn({ method: "POST" })
-  .validator((data: { reservation: Reservation; origin: string }) => {
-    if (!data?.reservation || typeof data.origin !== "string" || !data.origin.trim()) {
-      throw new Error("Données de paiement invalides.");
+function getPublicSiteUrl(): URL {
+  const value = process.env["PUBLIC_SITE_URL"]?.trim();
+  if (!value) {
+    throw new Error("Ajoutez PUBLIC_SITE_URL avec l'adresse HTTPS publique du site.");
+  }
+
+  const url = new URL(value);
+  if (url.protocol !== "https:") {
+    throw new Error("PUBLIC_SITE_URL doit utiliser HTTPS pour HelloAsso.");
+  }
+  return url;
+}
+
+export async function createHelloAssoCheckoutIntentRequest(input: {
+  reservation: Reservation;
+}): Promise<{ checkoutUrl: string; sessionId: string }> {
+  const accessToken = await getHelloAssoAccessToken();
+  const siteUrl = getPublicSiteUrl();
+  const returnUrl = new URL("/reserver?payment=return", siteUrl);
+  returnUrl.searchParams.set("reservationId", input.reservation.id);
+  const backUrl = new URL("/reserver?payment=cancelled", siteUrl);
+  backUrl.searchParams.set("reservationId", input.reservation.id);
+  const errorUrl = new URL("/reserver?payment=error", siteUrl);
+  errorUrl.searchParams.set("reservationId", input.reservation.id);
+  const response = await fetch(
+    `https://api.helloasso.com/v5/organizations/${HELLOASSO_ORGANIZATION_SLUG}/checkout-intents`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        totalAmount: input.reservation.totalCents,
+        initialAmount: input.reservation.totalCents,
+        itemName: `Commande pizzas ${input.reservation.reference}`,
+        backUrl: backUrl.toString(),
+        errorUrl: errorUrl.toString(),
+        returnUrl: returnUrl.toString(),
+        containsDonation: false,
+        payer: { email: input.reservation.email },
+        metadata: {
+          reservationId: input.reservation.id,
+          reservationReference: input.reservation.reference,
+        },
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`La création du paiement HelloAsso a échoué (HTTP ${response.status}).`);
+  }
+
+  const result = (await response.json()) as HelloAssoCheckoutResponse;
+  if (typeof result.id !== "number" || typeof result.redirectUrl !== "string") {
+    throw new Error("HelloAsso n'a pas renvoyé d'URL de paiement valide.");
+  }
+  return { checkoutUrl: result.redirectUrl, sessionId: String(result.id) };
+}
+
+export const createHelloAssoCheckoutSessionFn = createServerFn({ method: "POST" })
+  .validator((data: { reservationId: string }) => {
+    if (!data?.reservationId || typeof data.reservationId !== "string") {
+      throw new Error("Réservation invalide pour le paiement.");
     }
     return data;
   })
-  .handler(async ({ data }) => createStripeCheckoutSessionRequest(data));
+  .handler(async ({ data }) => {
+    const supabase = await getAdmin();
+    const { data: row, error } = await supabase
+      .from("reservations")
+      .select("*")
+      .eq("id", data.reservationId)
+      .single();
+
+    if (error) {
+      throw new Error(`Réservation introuvable pour le paiement : ${error.message}`);
+    }
+    const reservation = fromRow(row as ReservationRow);
+    if (reservation.status !== "pending") {
+      throw new Error("Cette réservation n'est plus en attente de paiement.");
+    }
+    return createHelloAssoCheckoutIntentRequest({ reservation });
+  });
+
+export const verifyHelloAssoPaymentFn = createServerFn({ method: "POST" })
+  .validator((data: { reservationId: string; checkoutIntentId: string }) => {
+    if (
+      !data?.reservationId ||
+      typeof data.reservationId !== "string" ||
+      !/^\d+$/.test(data.checkoutIntentId)
+    ) {
+      throw new Error("Données de vérification HelloAsso invalides.");
+    }
+    return data;
+  })
+  .handler(async ({ data }) => {
+    const reservationAdmin = await getAdmin();
+    const { data: row, error: readError } = await reservationAdmin
+      .from("reservations")
+      .select("*")
+      .eq("id", data.reservationId)
+      .single();
+    if (readError) {
+      throw new Error(`Réservation introuvable : ${readError.message}`);
+    }
+    const currentReservation = fromRow(row as ReservationRow);
+
+    const accessToken = await getHelloAssoAccessToken();
+    const response = await fetch(
+      `https://api.helloasso.com/v5/organizations/${HELLOASSO_ORGANIZATION_SLUG}/checkout-intents/${data.checkoutIntentId}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+    if (!response.ok) {
+      throw new Error(`La vérification HelloAsso a échoué (HTTP ${response.status}).`);
+    }
+
+    const checkout = (await response.json()) as HelloAssoCheckoutVerification;
+    const order = checkout.order;
+    const paidAmount = typeof order?.amount?.total === "number" ? order.amount.total : Number.NaN;
+    const authorizedPayments =
+      order?.payments?.filter(
+        (payment) => payment.state === "Authorized" && typeof payment.amount === "number",
+      ) ?? [];
+    const authorizedAmount = authorizedPayments.reduce(
+      (total, payment) => total + (payment.amount as number),
+      0,
+    );
+
+    if (
+      checkout.metadata?.reservationId !== currentReservation.id ||
+      paidAmount !== currentReservation.totalCents ||
+      authorizedAmount < currentReservation.totalCents
+    ) {
+      throw new Error("HelloAsso ne confirme pas le paiement de cette réservation.");
+    }
+
+    if (currentReservation.status === "paid") {
+      return { reservation: currentReservation, emailSent: null };
+    }
+    if (currentReservation.status !== "pending") {
+      throw new Error("Cette réservation n'est plus en attente de paiement.");
+    }
+
+    const { data: updatedRow, error: updateError } = await reservationAdmin
+      .from("reservations")
+      .update({ status: "paid", updated_at: new Date().toISOString() })
+      .eq("id", currentReservation.id)
+      .eq("status", "pending")
+      .select("*")
+      .maybeSingle();
+    if (updateError) {
+      throw new Error(`Impossible de confirmer la réservation : ${updateError.message}`);
+    }
+    if (!updatedRow) {
+      const { data: latestRow, error: latestError } = await reservationAdmin
+        .from("reservations")
+        .select("*")
+        .eq("id", currentReservation.id)
+        .single();
+      if (latestError) {
+        throw new Error(`Impossible de relire la réservation : ${latestError.message}`);
+      }
+      const latestReservation = fromRow(latestRow as ReservationRow);
+      if (latestReservation.status === "paid") {
+        return { reservation: latestReservation, emailSent: null };
+      }
+      throw new Error(
+        "Le statut de cette réservation a changé pendant la vérification du paiement.",
+      );
+    }
+
+    const reservation = fromRow(updatedRow as ReservationRow);
+    const { sendReservationEmail } = await import("./email.server");
+    const emailSent = await sendReservationEmail(reservation, "paid");
+    return { reservation, emailSent };
+  });
 
 const EMAIL_KINDS = ["confirmation", "paid", "picked_up"] as const;
 type EmailKind = (typeof EMAIL_KINDS)[number];

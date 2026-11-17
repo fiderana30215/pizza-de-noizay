@@ -5,9 +5,9 @@ Je suis Pascal, je suis passant de vente pour une soirée organisée par l'écol
 ## Fonctionnalités
 
 - **Accueil** (`/`) : présentation de la soirée, menu des pizzas, infos pratiques et FAQ.
-- **Réservation** (`/reserver`) : formulaire sans paiement (coordonnées, e-mail obligatoire,
-  pizzas, créneau de retrait), récapitulatif, numéro de réservation. Un e-mail est envoyé à la
-  réservation, puis à chaque passage au statut payé ou récupéré.
+- **Réservation** (`/reserver`) : commande de pizzas avec paiement en espèces au retrait ou en ligne
+  via HelloAsso. Le paiement en ligne est vérifié côté serveur avant de confirmer la réservation.
+  Un e-mail est envoyé à la réservation, puis au paiement confirmé ou au retrait.
 - **Admin** (`/caisse`) : espace bénévoles protégé par un mot de passe, suivi des commandes,
   statuts payée/récupérée (avec e-mail au client), total encaissé et export CSV.
 - **Supabase** : les réservations sont partagées entre appareils dès que Supabase est configuré.
@@ -15,6 +15,18 @@ Je suis Pascal, je suis passant de vente pour une soirée organisée par l'écol
 
 Voir [docs/supabase.md](docs/supabase.md) pour la configuration, et
 [docs/supabase-schema.sql](docs/supabase-schema.sql) pour le script SQL à exécuter dans Supabase.
+
+## Configuration du paiement HelloAsso
+
+Configurer ces variables dans l'environnement **serveur** de déploiement (ne pas exposer le secret
+dans une variable `VITE_`) :
+
+- `HELLOASSO_CLIENT_ID` et `HELLOASSO_CLIENT_SECRET` : identifiants API de l'association.
+- `PUBLIC_SITE_URL` : URL publique HTTPS du site.
+- `VITE_HELLOASSO_ENABLED=true` : active l'option de paiement après configuration des identifiants.
+
+L'intégration utilise le slug `association-des-parents-d-eleves-de-noizay`. L'enregistrement des
+réservations dans Supabase est nécessaire pour le paiement en ligne.
 
 This project was built with [Lovable](https://lovable.dev).
 
