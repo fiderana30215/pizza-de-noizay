@@ -26,13 +26,21 @@ Dans le fichier `.env` local, ajoutez ou remplacez ces variables :
 ```dotenv
 GOOGLE_SCRIPT_EMAIL_URL=https://script.google.com/macros/s/ID_DU_DEPLOIEMENT/exec
 GOOGLE_SCRIPT_EMAIL_SECRET=la_meme_valeur_aleatoire_que_dans_script_properties
+PUBLIC_SITE_URL=https://votre-site.vercel.app
 ```
 
-Ne mettez pas ces variables sous un nom commençant par `VITE_`. Redémarrez ensuite le serveur local (`npm run dev`). Si `GOOGLE_SCRIPT_EMAIL_URL` est défini, le site choisit Apps Script avant Resend.
+Ne mettez pas ces variables sous un nom commençant par `VITE_`. Remplacez
+`PUBLIC_SITE_URL` par l'adresse Vercel publique du site : les lecteurs d'e-mail
+ne peuvent pas afficher les images servies depuis `localhost`. Redémarrez ensuite
+le serveur local (`npm run dev`). Si `GOOGLE_SCRIPT_EMAIL_URL` est défini, le site
+choisit Apps Script avant Resend.
 
 ## 4. Configurer Vercel
 
-Dans le projet Vercel, ouvrez **Settings → Environment Variables** et ajoutez `GOOGLE_SCRIPT_EMAIL_URL` ainsi que `GOOGLE_SCRIPT_EMAIL_SECRET` pour **Production** (et Preview si nécessaire). Utilisez les mêmes valeurs que ci-dessus. Redéployez après l'enregistrement.
+Dans le projet Vercel, ouvrez **Settings → Environment Variables** et ajoutez
+`GOOGLE_SCRIPT_EMAIL_URL`, `GOOGLE_SCRIPT_EMAIL_SECRET` et `PUBLIC_SITE_URL`
+pour **Production** (et Preview si nécessaire). Utilisez l'URL publique de votre
+site comme valeur de `PUBLIC_SITE_URL`. Redéployez après l'enregistrement.
 
 Une fois le test réussi, vous pouvez retirer `RESEND_API_KEY` des variables locales et de Vercel si elle n'est plus utilisée.
 

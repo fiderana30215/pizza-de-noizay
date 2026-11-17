@@ -40,6 +40,7 @@ dans un fichier `.env` en local) :
 | `RESERVATION_EMAIL_REPLY_TO`| serveur    | Adresse de réponse optionnelle                 |
 | `GOOGLE_SCRIPT_EMAIL_URL`   | serveur    | URL `/exec` du Web App Google Apps Script      |
 | `GOOGLE_SCRIPT_EMAIL_SECRET`| serveur   | Secret partagé avec le script Google          |
+| `PUBLIC_SITE_URL`           | serveur    | URL publique du site, requise pour afficher les photos dans les e-mails |
 
 > Sans `VITE_SUPABASE_URL`, le site reste en mode démo local même si les
 > variables serveur sont présentes.
@@ -74,6 +75,11 @@ Suivez le guide complet [Configurer l'envoi avec Google Apps Script](./google-ap
 Le script prêt à déployer est [`google-apps-script-email.gs`](./google-apps-script-email.gs).
 Cette option ne demande pas de domaine personnalisé, mais utilise les quotas et
 les règles anti-spam de Google.
+
+Les e-mails affichent une petite photo de chaque pizza. Configurez `PUBLIC_SITE_URL`
+avec l'URL publique du site (par ex. l'URL `https://...vercel.app`). En local,
+utilisez aussi une URL publique, car le destinataire ne peut pas charger une
+image depuis `localhost`.
 
 Trois e-mails sont envoyés au client :
 

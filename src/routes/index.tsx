@@ -149,10 +149,8 @@ function Index() {
           <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
             <Reveal className="rounded-3xl bg-card p-4 shadow-md sm:p-5">
               <p className="font-script text-xl text-accent">Le menu</p>
-              <h2 className="mt-1 text-2xl font-bold text-primary sm:text-3xl">Pizzas à 13 €</h2>
               <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-                Deux pizzas au choix, préparées par la boulangerie. Commande en ligne, retrait sur
-                place.
+                Deux pizzas au choix. Commande en ligne, retrait sur place.
               </p>
 
               <ul className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -218,9 +216,6 @@ function Index() {
                     Nos moments
                   </h2>
                 </div>
-                <span className="mt-1 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/75">
-                  Noizay · 2026
-                </span>
               </div>
 
               <div className="relative mt-3 min-h-[390px] overflow-hidden rounded-2xl bg-white/[0.025] sm:min-h-[500px] lg:min-h-[580px]">

@@ -1,5 +1,13 @@
 import { EVENT, formatEuros, formatSlot } from "./event";
+import { PIZZAS } from "./event";
 import type { Reservation } from "./reservation-core";
+import quatreFromagesImage from "../assets/pizzamiel.png?url";
+import reginaImage from "../assets/pizzaregina.png?url";
+
+const PIZZA_IMAGE_PATHS: Record<string, string> = {
+  "quatre-fromages": quatreFromagesImage,
+  regina: reginaImage,
+};
 
 export type ReservationEmailKind = "confirmation" | "paid" | "picked_up";
 
@@ -63,6 +71,33 @@ function escapeHtml(value: string): string {
     .replace(/'/g, "&#39;");
 }
 
+function getPublicBaseUrl(): string | undefined {
+  const configuredUrl = readEnv("PUBLIC_SITE_URL");
+  const vercelUrl = readEnv("VERCEL_PROJECT_PRODUCTION_URL") ?? readEnv("VERCEL_URL");
+  const candidate = configuredUrl ?? (vercelUrl ? `https://${vercelUrl}` : undefined);
+
+  if (!candidate) return undefined;
+
+  try {
+    return new URL(candidate).origin;
+  } catch {
+    console.error("PUBLIC_SITE_URL doit être une URL publique complète (https://...)");
+    return undefined;
+  }
+}
+
+function getPizzaImageUrl(pizzaId: string): string | undefined {
+  const imagePath = PIZZA_IMAGE_PATHS[pizzaId];
+  const baseUrl = getPublicBaseUrl();
+  if (!imagePath || !baseUrl) return undefined;
+
+  try {
+    return new URL(imagePath, `${baseUrl}/`).toString();
+  } catch {
+    return undefined;
+  }
+}
+
 function buildEmail(
   reservation: Reservation,
   kind: ReservationEmailKind,
@@ -77,15 +112,24 @@ function buildEmail(
   );
 
   const itemRows = reservation.items
-    .map(
-      (item) => `
+    .map((item) => {
+      const imageUrl = getPizzaImageUrl(item.pizzaId);
+      const pizza = PIZZAS.find((candidate) => candidate.id === item.pizzaId);
+      const imageCell = imageUrl
+        ? `<td width="48" style="width:48px;padding:5px 10px 5px 0;vertical-align:middle;">
+              <img src="${escapeHtml(imageUrl)}" alt="Pizza ${escapeHtml(item.name)}" width="44" height="44" style="display:block;width:44px;height:44px;border-radius:8px;object-fit:cover;" />
+            </td>`
+        : `<td width="34" style="width:34px;padding:5px 8px 5px 0;font-size:20px;vertical-align:middle;">${pizza?.emoji ?? "🍕"}</td>`;
+
+      return `
                 <tr>
-                  <td style="padding:6px 0;color:#333;">${item.quantity}× ${escapeHtml(item.name)}</td>
-                  <td style="padding:6px 0;text-align:right;color:#333;font-weight:600;">${formatEuros(
+                  ${imageCell}
+                  <td style="padding:5px 0;color:#333;font-size:13px;line-height:1.35;">${item.quantity}× ${escapeHtml(item.name)}</td>
+                  <td style="padding:5px 0 5px 8px;text-align:right;color:#333;font-size:13px;font-weight:600;white-space:nowrap;">${formatEuros(
                     item.quantity * item.unitPriceCents,
                   )}</td>
-                </tr>`,
-    )
+                </tr>`;
+    })
     .join("");
 
   const text = [
@@ -110,26 +154,26 @@ function buildEmail(
 
   const html = `<!doctype html>
 <html lang="fr">
-  <body style="margin:0;padding:0;background:#f6f1e7;font-family:Arial,Helvetica,sans-serif;">
-    <div style="max-width:560px;margin:0 auto;padding:24px;">
-      <div style="background:#2b2b2b;border-radius:16px 16px 0 0;padding:24px;text-align:center;">
-        <p style="margin:0;font-size:14px;letter-spacing:2px;text-transform:uppercase;color:#e9b872;">Soirée solidaire</p>
-        <h1 style="margin:8px 0 0;font-size:28px;color:#ffffff;">Soirée Pizza</h1>
-        <p style="margin:4px 0 0;font-size:16px;color:#e9b872;">${escapeHtml(EVENT.school)}</p>
+  <body style="margin:0;padding:0;background:#f6f1e7;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.45;">
+    <div style="max-width:520px;margin:0 auto;padding:16px;">
+      <div style="background:#2b2b2b;border-radius:14px 14px 0 0;padding:18px;text-align:center;">
+        <p style="margin:0;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#e9b872;">Soirée solidaire</p>
+        <h1 style="margin:6px 0 0;font-size:23px;line-height:1.2;color:#ffffff;">Soirée Pizza</h1>
+        <p style="margin:4px 0 0;font-size:13px;color:#e9b872;">${escapeHtml(EVENT.school)}</p>
       </div>
 
-      <div style="background:#ffffff;padding:24px;border-radius:0 0 16px 16px;">
-        <p style="margin:0 0 12px;font-size:16px;color:#333;">Bonjour ${escapeHtml(firstName)},</p>
-        <p style="margin:0 0 16px;font-size:15px;color:#555;">
+      <div style="background:#ffffff;padding:18px;border-radius:0 0 14px 14px;">
+        <p style="margin:0 0 8px;font-size:14px;color:#333;">Bonjour ${escapeHtml(firstName)},</p>
+        <p style="margin:0 0 12px;font-size:13px;color:#555;">
           ${escapeHtml(content.intro)}
         </p>
 
-        <p style="margin:0;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#888;">Numéro de réservation</p>
-        <p style="margin:4px 0 20px;font-size:26px;font-weight:700;color:${content.accent};">${escapeHtml(
+        <p style="margin:0;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#888;">Numéro de réservation</p>
+        <p style="margin:3px 0 14px;font-size:22px;line-height:1.2;font-weight:700;color:${content.accent};">${escapeHtml(
           reservation.reference,
         )}</p>
 
-        <table style="width:100%;border-collapse:collapse;font-size:15px;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
           <tr>
             <td style="padding:4px 0;color:#888;">Date</td>
             <td style="padding:4px 0;text-align:right;color:#333;font-weight:600;">${escapeHtml(
@@ -150,27 +194,27 @@ function buildEmail(
           </tr>
         </table>
 
-        <hr style="border:none;border-top:1px solid #eee;margin:16px 0;" />
+        <hr style="border:none;border-top:1px solid #eee;margin:12px 0;" />
 
-        <table style="width:100%;border-collapse:collapse;font-size:15px;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
           ${itemRows}
         </table>
 
-        <hr style="border:none;border-top:1px solid #eee;margin:16px 0;" />
+        <hr style="border:none;border-top:1px solid #eee;margin:12px 0;" />
 
-        <p style="margin:0;font-size:16px;color:#333;text-align:right;">
+        <p style="margin:0;font-size:14px;color:#333;text-align:right;">
           ${content.totalLabel} :
           <strong style="color:${content.accent};">${formatEuros(reservation.totalCents)}</strong>
         </p>
 
-        <p style="margin:20px 0 0;padding:12px 16px;background:${content.noteBackground};border-radius:10px;font-size:14px;color:${content.noteColor};">
+        <p style="margin:14px 0 0;padding:10px 12px;background:${content.noteBackground};border-radius:8px;font-size:12px;line-height:1.4;color:${content.noteColor};">
           ${escapeHtml(content.note)}
         </p>
 
-        <p style="margin:24px 0 0;font-size:15px;color:#333;">
+        <p style="margin:16px 0 0;font-size:13px;color:#333;">
           ${escapeHtml(content.signOff)}
         </p>
-        <p style="margin:4px 0 0;font-size:14px;color:#888;">L'équipe de la ${escapeHtml(
+        <p style="margin:3px 0 0;font-size:12px;color:#888;">L'équipe de la ${escapeHtml(
           EVENT.school,
         )}</p>
       </div>

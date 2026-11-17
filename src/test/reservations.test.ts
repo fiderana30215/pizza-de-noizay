@@ -77,7 +77,9 @@ describe("réservations (mode démo local)", () => {
 
   it("envoie un e-mail au passage à payé puis à récupéré", async () => {
     vi.stubEnv("RESEND_API_KEY", "re_test");
+    vi.stubEnv("GOOGLE_SCRIPT_EMAIL_URL", "");
     vi.stubEnv("RESERVATION_EMAIL_FROM", "Soirée Pizza <test@exemple.fr>");
+    vi.stubEnv("PUBLIC_SITE_URL", "https://pizza.example");
 
     const fetchMock = vi
       .fn<typeof fetch>()
@@ -92,9 +94,13 @@ describe("réservations (mode démo local)", () => {
     const paidPayload = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body)) as {
       subject: string;
       to: string[];
+      html: string;
     };
     expect(paidPayload.subject).toContain("Paiement confirmé");
     expect(paidPayload.to).toEqual(["camille@exemple.fr"]);
+    expect(paidPayload.html).toContain('alt="Pizza 4 fromages"');
+    expect(paidPayload.html).toContain("https://pizza.example/");
+    expect(paidPayload.html).toContain("font-size:13px");
 
     fetchMock.mockClear();
     expect(await sendReservationEmail(reservation, "picked_up")).toBe(true);
