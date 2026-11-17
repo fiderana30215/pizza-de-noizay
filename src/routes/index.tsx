@@ -139,7 +139,7 @@ function Index() {
             delay={500}
           >
             <CreditCard className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>Paiement : espèces ou carte bancaire, sur place au moment du retrait.</span>
+            <span>Paiement en espèces sur place ou par Carte Bancaire à la commande</span>
           </Reveal>
         </div>
       </section>
