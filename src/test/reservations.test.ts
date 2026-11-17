@@ -43,6 +43,15 @@ describe("réservations (mode démo local)", () => {
     expect(stored[0]?.id).toBe(reservation.id);
   });
 
+  it("accepte les retraits par quart d'heure et refuse les autres horaires", async () => {
+    await expect(createReservation({ ...BASE_INPUT, pickupSlot: "18:15" })).resolves.toMatchObject({
+      reservation: { pickupSlot: "18:15" },
+    });
+    await expect(createReservation({ ...BASE_INPUT, pickupSlot: "18:20" })).rejects.toThrow(
+      "créneau de retrait",
+    );
+  });
+
   it("refuse une commande vide", async () => {
     await expect(createReservation({ ...BASE_INPUT, quantities: {} })).rejects.toThrow(
       "au moins une pizza",
