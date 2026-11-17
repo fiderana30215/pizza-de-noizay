@@ -210,7 +210,7 @@ function Index() {
               <div className="flex items-start justify-between gap-3 px-1">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/55">
-                    Souvenirs de la soirée
+                    Noizay · 2025
                   </p>
                   <h2 className="mt-1 font-script text-2xl text-accent sm:text-3xl">
                     Nos moments
