@@ -6,8 +6,8 @@ export const EVENT = {
   school: "Caisse de Noizay",
   title: "Soirée Pizza solidaire",
   dateLabel: "Jeudi 26 novembre 2026",
-  dateISO: "2026-11-26T18:00:00+01:00",
-  timeLabel: "Retraits de 18h à 21h",
+  dateISO: "2026-11-26T18:45:00+01:00",
+  timeLabel: "Retraits de 18h45 à 21h30",
   locationName: "Boulangerie les pains de Cisse - Noizay",
   locationDetail: "Retrait des pizzas sur place",
   orderDeadlineLabel: "mercredi 25 novembre 2026",
@@ -43,9 +43,6 @@ export const PIZZAS: readonly Pizza[] = [
 ] as const;
 
 export const PICKUP_SLOTS = [
-  "18:00",
-  "18:15",
-  "18:30",
   "18:45",
   "19:00",
   "19:15",
@@ -53,8 +50,10 @@ export const PICKUP_SLOTS = [
   "19:45",
   "20:00",
   "20:15",
-  "20:30",
   "20:45",
+  "21:00",
+  "21:15",
+  "21:30",
 ] as const;
 
 export type PickupSlot = (typeof PICKUP_SLOTS)[number];
