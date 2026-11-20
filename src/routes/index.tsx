@@ -140,6 +140,30 @@ function Index() {
             <CreditCard className="mt-0.5 h-4 w-4 shrink-0" />
             <span>Paiement en espèces sur place ou par CB à la commande</span>
           </Reveal>
+          <Reveal
+            className="mt-3 max-w-xl rounded-2xl border border-white/15 bg-black/35 p-4 text-sm text-white/90 shadow-sm backdrop-blur-sm"
+            delay={560}
+          >
+            <p>
+              HelloAsso propose une contribution facultative pour financer sa plateforme. Elle n'est
+              pas obligatoire : vous pouvez la passer à 0 € avant de valider, pour ne régler que le
+              montant de votre commande.
+            </p>
+            <p className="mt-2">
+              Le site HelloAsso peut parfois ramer : attendez bien la confirmation avant de refaire
+              un paiement, pour éviter un double débit.
+            </p>
+            <p className="mt-2">
+              En cas de doute, vous pouvez appeler Paul au{" "}
+              <a
+                href="tel:+33615837551"
+                className="font-bold underline decoration-white/60 underline-offset-2 hover:decoration-white"
+              >
+                06 15 83 75 51
+              </a>
+              .
+            </p>
+          </Reveal>
         </div>
       </section>
 
