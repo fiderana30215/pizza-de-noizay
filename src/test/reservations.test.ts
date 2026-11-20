@@ -13,7 +13,7 @@ const BASE_INPUT = {
   customerName: "Camille Martin",
   phone: "06 12 34 56 78",
   email: "camille@exemple.fr",
-  pickupSlot: "18:45",
+  pickupSlot: "19:15",
   quantities: { "quatre-fromages": 2, regina: 1 },
 };
 
@@ -43,13 +43,19 @@ describe("réservations (mode démo local)", () => {
     expect(stored[0]?.id).toBe(reservation.id);
   });
 
-  it("accepte les créneaux de 18h45 à 21h30 et refuse les horaires hors plage", async () => {
-    await expect(createReservation({ ...BASE_INPUT, pickupSlot: "18:45" })).resolves.toMatchObject({
-      reservation: { pickupSlot: "18:45" },
+  it("refuse les créneaux retirés et les horaires hors plage", async () => {
+    await expect(createReservation({ ...BASE_INPUT, pickupSlot: "19:15" })).resolves.toMatchObject({
+      reservation: { pickupSlot: "19:15" },
     });
     await expect(createReservation({ ...BASE_INPUT, pickupSlot: "21:30" })).resolves.toMatchObject({
       reservation: { pickupSlot: "21:30" },
     });
+    await expect(createReservation({ ...BASE_INPUT, pickupSlot: "18:45" })).rejects.toThrow(
+      "créneau de retrait",
+    );
+    await expect(createReservation({ ...BASE_INPUT, pickupSlot: "19:00" })).rejects.toThrow(
+      "créneau de retrait",
+    );
     await expect(createReservation({ ...BASE_INPUT, pickupSlot: "18:30" })).rejects.toThrow(
       "créneau de retrait",
     );

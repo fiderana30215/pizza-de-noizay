@@ -43,8 +43,6 @@ export const PIZZAS: readonly Pizza[] = [
 ] as const;
 
 export const PICKUP_SLOTS = [
-  "18:45",
-  "19:00",
   "19:15",
   "19:30",
   "19:45",
