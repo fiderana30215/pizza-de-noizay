@@ -3,6 +3,8 @@ import { createServerFn } from "@tanstack/react-start";
 import {
   buildReservation,
   fromRow,
+  MAX_RESERVATIONS_PER_PICKUP_SLOT,
+  ReservationError,
   toRow,
   type NewReservationInput,
   type Reservation,
@@ -59,6 +61,24 @@ export const createReservationFn = createServerFn({ method: "POST" })
     // On revalide côté serveur : les données venant du navigateur ne sont jamais fiables.
     const reservation = buildReservation(data);
     const supabase = await getAdmin();
+
+    const { count, error: countError } = await supabase
+      .from("reservations")
+      .select("id", { count: "exact", head: true })
+      .eq("pickup_slot", reservation.pickupSlot)
+      .neq("status", "cancelled");
+
+    if (countError) {
+      throw new Error(`Impossible de vérifier le créneau de retrait : ${countError.message}`);
+    }
+    if (count === null) {
+      throw new Error("Impossible de vérifier le nombre de commandes sur ce créneau.");
+    }
+    if (count >= MAX_RESERVATIONS_PER_PICKUP_SLOT) {
+      throw new ReservationError(
+        "Ce créneau de retrait est complet (4 commandes maximum). Choisissez-en un autre.",
+      );
+    }
 
     const { error } = await supabase.from("reservations").insert(toRow(reservation));
 

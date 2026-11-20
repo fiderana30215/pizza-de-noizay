@@ -59,6 +59,7 @@ export const STATUS_LABELS: Record<ReservationStatus, string> = {
 };
 
 export const STATUS_ORDER: ReservationStatus[] = ["pending", "paid", "picked_up", "cancelled"];
+export const MAX_RESERVATIONS_PER_PICKUP_SLOT = 4;
 
 export class ReservationError extends Error {
   constructor(message: string) {

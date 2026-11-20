@@ -43,6 +43,21 @@ describe("réservations (mode démo local)", () => {
     expect(stored[0]?.id).toBe(reservation.id);
   });
 
+  it("limite à quatre réservations actives par créneau et libère la place après annulation", async () => {
+    const reservations = [];
+    for (let index = 0; index < 4; index += 1) {
+      reservations.push(await createReservation(BASE_INPUT));
+    }
+
+    await expect(createReservation(BASE_INPUT)).rejects.toThrow("4 commandes maximum");
+    expect(await listReservations("noizay")).toHaveLength(4);
+
+    await updateReservationStatus("noizay", reservations[0]!.reservation.id, "cancelled");
+    await expect(createReservation(BASE_INPUT)).resolves.toMatchObject({
+      reservation: { pickupSlot: "19:15" },
+    });
+  });
+
   it("refuse les créneaux retirés et les horaires hors plage", async () => {
     await expect(createReservation({ ...BASE_INPUT, pickupSlot: "19:15" })).resolves.toMatchObject({
       reservation: { pickupSlot: "19:15" },

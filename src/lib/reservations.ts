@@ -1,4 +1,6 @@
 import {
+  MAX_RESERVATIONS_PER_PICKUP_SLOT,
+  ReservationError,
   buildReservation,
   reservationsToCsv,
   type NewReservationInput,
@@ -87,6 +89,15 @@ export async function createReservation(
 
   const reservation = buildReservation(input);
   const reservations = readLocalReservations();
+  const reservationsForSlot = reservations.filter(
+    (existing) => existing.pickupSlot === reservation.pickupSlot && existing.status !== "cancelled",
+  ).length;
+  if (reservationsForSlot >= MAX_RESERVATIONS_PER_PICKUP_SLOT) {
+    throw new ReservationError(
+      "Ce créneau de retrait est complet (4 commandes maximum). Choisissez-en un autre.",
+    );
+  }
+
   reservations.unshift(reservation);
   writeLocalReservations(reservations);
 
